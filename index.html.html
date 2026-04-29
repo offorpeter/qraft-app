@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QRaft — QR Code Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0b10;--s1:#13131b;--s2:#1a1a25;--s3:#21212f;--s4:#28283a;
+  --bd:#2e2e42;--bd2:#3a3a52;
+  --ac:#7c6ff7;--ac2:#a89cf7;--acg:rgba(124,111,247,.15);--acb:rgba(124,111,247,.08);
+  --tx:#eeedf8;--t2:#8e8caa;--t3:#52506a;
+  --gr:#4ade80;--am:#fbbf24;--rd:#f87171;--bl:#60a5fa;
+  --r:12px;--rs:8px;--rl:18px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden}
+
+/* AUTH */
+.auth-wrap{min-height:100vh;display:flex;align-items:stretch}
+.auth-left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;background:var(--bg)}
+.auth-right{width:420px;background:var(--s1);border-left:1px solid var(--bd);display:flex;flex-direction:column;padding:48px 40px}
+.auth-brand{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--tx);letter-spacing:-1px}
+.auth-brand span{color:var(--ac)}
+.auth-tagline{font-size:13.5px;color:var(--t2);margin-bottom:32px;line-height:1.6;margin-top:6px}
+.auth-feat{display:flex;align-items:flex-start;gap:13px;margin-bottom:18px}
+.af-icon{width:34px;height:34px;border-radius:9px;background:var(--acg);border:1px solid rgba(124,111,247,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.af-title{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.af-desc{font-size:12px;color:var(--t2);line-height:1.5}
+.auth-form-title{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.auth-form-sub{font-size:13px;color:var(--t2);margin-bottom:26px}
+.auth-form-sub a{color:var(--ac);cursor:pointer}
+.auth-form-sub a:hover{text-decoration:underline}
+.form-field{margin-bottom:13px}
+.form-label{display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.form-inp{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:var(--rs);padding:10px 13px;font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border .15s,box-shadow .15s}
+.form-inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px var(--acg)}
+.form-inp::placeholder{color:var(--t3)}
+.form-inp.err{border-color:var(--rd)}
+.err-msg{font-size:11.5px;color:var(--rd);margin-top:4px;display:none}
+.err-msg.show{display:block}
+.pw-wrap{position:relative}
+.pw-wrap .form-inp{padding-right:42px}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--t3);cursor:pointer;padding:4px;display:flex}
+.str-bar{display:flex;gap:4px;margin-top:5px}
+.str-seg{height:3px;flex:1;border-radius:2px;background:var(--bd);transition:background .2s}
+.str-lbl{font-size:11px;color:var(--t3);margin-top:3px}
+.btn-auth{width:100%;padding:12px;background:var(--ac);border:none;border-radius:var(--rs);color:#fff;font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:4px}
+.btn-auth:hover{opacity:.88}
+.btn-auth:active{transform:scale(.98)}
+.divider-or{display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--t3);font-size:12px}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--bd)}
+.btn-google{width:100%;padding:10px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);color:var(--t2);font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .15s}
+.btn-google:hover{background:var(--s3);color:var(--tx)}
+.remember-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px;flex-wrap:wrap;gap:8px}
+.check-wrap{display:flex;align-items:center;gap:7px;cursor:pointer}
+.check-wrap input{accent-color:var(--ac);width:14px;height:14px}
+.check-label{font-size:13px;color:var(--t2)}
+.forgot-link{font-size:13px;color:var(--ac);cursor:pointer}
+
+/* APP */
+.app-shell{display:flex;min-height:100vh;position:relative}
+.sidebar-overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,.6);z-index:40}
+.sidebar-overlay.open{display:block}
+.sidebar{width:220px;min-height:100vh;background:var(--s1);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0;z-index:50;transition:transform .25s;position:relative}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.sb-brand{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:var(--tx);letter-spacing:-.5px}
+.sb-brand span{color:var(--ac)}
+.sb-close{display:none;background:none;border:none;color:var(--t2);cursor:pointer;padding:4px}
+.sb-user{display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--bd);margin-bottom:4px;cursor:pointer}
+.sb-user:hover{background:var(--s2)}
+.sb-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--ac),#4f46e5);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-uname{font-size:12.5px;font-weight:600;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-uemail{font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav{padding:6px 9px;flex:1}
+.nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);padding:0 7px;margin:10px 0 3px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:all .12s;margin-bottom:1px;border:1px solid transparent;user-select:none}
+.nav-item svg{flex-shrink:0;opacity:.7}
+.nav-item:hover{background:var(--s2);color:var(--tx)}
+.nav-item.active{background:var(--acb);color:var(--ac2);border-color:rgba(124,111,247,.2)}
+.nav-item.active svg{opacity:1}
+.sb-bottom{padding:10px;border-top:1px solid var(--bd)}
+.btn-logout{display:flex;align-items:center;gap:8px;width:100%;padding:8px 9px;border-radius:var(--rs);background:none;border:1px solid var(--bd);color:var(--t2);font-size:12.5px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .12s}
+.btn-logout:hover{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.3);color:var(--rd)}
+.app-main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{height:54px;background:var(--s1);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex-shrink:0}
+.tb-left{display:flex;align-items:center;gap:10px}
+.hamburger{display:none;background:none;border:1px solid var(--bd);border-radius:var(--rs);color:var(--t2);cursor:pointer;padding:7px;flex-shrink:0}
+.hamburger:hover{background:var(--s2);color:var(--tx)}
+.tb-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--tx)}
+.tb-right{display:flex;align-items:center;gap:8px}
+.tb-btn{background:var(--s2);border:1px solid var(--bd);color:var(--t2);border-radius:var(--rs);padding:6px 11px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .12s;font-weight:500}
+.tb-btn:hover{background:var(--s3);color:var(--tx)}
+.content{flex:1;padding:18px;overflow-y:auto}
+.page-view{display:none}
+.page-view.active{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.stat{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:13px 15px;position:relative;overflow:hidden}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--ac);opacity:.4}
+.stat-lbl{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;font-weight:600}
+.stat-val{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;color:var(--tx);line-height:1}
+.stat-hint{font-size:10.5px;color:var(--t3);margin-top:4px;display:flex;align-items:center;gap:4px}
+.dot{width:5px;height:5px;border-radius:50%;display:inline-block;flex-shrink:0}
+
+/* WORKSPACE */
+.workspace{display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:start}
+
+/* CARD */
+.card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--tx)}
+.chip{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600}
+.chip-p{background:var(--acg);color:var(--ac2);border:1px solid rgba(124,111,247,.2)}
+.chip-g{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
+.card-bd{padding:16px 18px}
+
+/* TABS */
+.tabs{display:flex;gap:3px;background:var(--s2);padding:4px;border-radius:var(--rs);margin-bottom:16px;flex-wrap:wrap}
+.tab{flex:1;padding:6px 5px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;text-align:center;color:var(--t2);transition:all .12s;white-space:nowrap;min-width:44px}
+.tab.active{background:var(--s3);color:var(--tx)}
+.tab:hover:not(.active){color:var(--tx)}
+
+/* FORM */
+.fg{margin-bottom:12px}
+.fl{display:block;font-size:10.5px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.fi,.ft,.fs{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:var(--rs);padding:9px 11px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border .12s}
+.fi:focus,.ft:focus,.fs:focus{border-color:var(--ac)}
+.fi::placeholder,.ft::placeholder{color:var(--t3)}
+.ft{resize:vertical;min-height:64px;line-height:1.5}
+.fs option{background:var(--s2)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sdiv{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--t3);font-weight:700;margin:14px 0 10px;display:flex;align-items:center;gap:8px}
+.sdiv::after{content:'';flex:1;height:1px;background:var(--bd)}
+.crow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cfield{display:flex;align-items:center;gap:8px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:7px 10px;cursor:pointer;transition:border .12s}
+.cfield:hover{border-color:var(--bd2)}
+.cswatch{width:21px;height:21px;border-radius:4px;border:1px solid rgba(255,255,255,.1);flex-shrink:0}
+.chex{font-size:11.5px;color:var(--t2);font-family:monospace;flex:1}
+.cinput{position:absolute;opacity:0;width:0;height:0}
+.srow{display:flex;align-items:center;gap:10px}
+.sslider{flex:1;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;background:var(--bd2);outline:none;cursor:pointer}
+.sslider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ac);cursor:pointer;box-shadow:0 0 0 3px var(--acg)}
+.sval{font-size:12px;font-weight:600;color:var(--tx);min-width:30px;text-align:right}
+.ecopts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px}
+.ecopt{background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:8px 5px;cursor:pointer;text-align:center;transition:all .12s}
+.ecopt:hover{background:var(--s3)}
+.ecopt.active{border-color:var(--ac);background:var(--acb)}
+.ecopt-lbl{font-size:10px;color:var(--t2);font-weight:600}
+.ecopt.active .ecopt-lbl{color:var(--ac2)}
+.ecopt-ico{font-size:14px;margin-bottom:2px}
+.btngen{width:100%;padding:11px;background:var(--ac);border:none;border-radius:var(--rs);color:#fff;font-size:13.5px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:opacity .15s,transform .1s;margin-top:2px}
+.btngen:hover{opacity:.88}
+.btngen:active{transform:scale(.98)}
+
+/* PREVIEW */
+.qr-box{display:flex;align-items:center;justify-content:center;min-height:190px;background:var(--s2);border-radius:var(--r);margin-bottom:11px}
+#qr-out{display:flex;align-items:center;justify-content:center;padding:11px}
+#qr-out canvas,#qr-out img{border-radius:6px!important}
+.qr-ph{text-align:center;padding:28px 16px}
+.qr-ph-ico{font-size:34px;opacity:.2;margin-bottom:8px}
+.qr-ph-txt{font-size:12px;color:var(--t3);line-height:1.6}
+.meta-box{background:var(--s2);border-radius:var(--rs);padding:9px 11px;margin-bottom:10px;display:none}
+.meta-box.show{display:block}
+.meta-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px}
+.meta-k{color:var(--t3)}
+.meta-v{color:var(--t2);font-weight:500}
+.actbtns{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:7px}
+.btndl{padding:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);border-radius:var(--rs);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px}
+.btndl:hover{background:var(--s3);color:var(--tx)}
+.btncopy{padding:8px;border:1px solid var(--bd);background:var(--s2);color:var(--t2);border-radius:var(--rs);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;gap:5px;width:100%}
+.btncopy:hover{background:var(--s3);color:var(--tx)}
+.btncopy.ok{background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.25);color:var(--gr)}
+
+/* HISTORY */
+.hist-list{display:flex;flex-direction:column;gap:6px}
+.hist-item{display:flex;align-items:center;gap:9px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:9px 10px;cursor:pointer;transition:all .12s}
+.hist-item:hover{border-color:var(--bd2);background:var(--s3)}
+.hist-thumb{width:36px;height:36px;background:var(--s3);border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.hist-thumb canvas,.hist-thumb img{width:32px!important;height:32px!important}
+.hist-info{flex:1;min-width:0}
+.hist-lbl{font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:10px;color:var(--t3);margin-top:1px}
+.hist-badge{font-size:9.5px;padding:2px 6px;border-radius:20px;font-weight:700;background:var(--acg);color:var(--ac2);flex-shrink:0}
+.empty-hist{text-align:center;padding:16px;color:var(--t3);font-size:12px;line-height:1.6}
+
+/* PROFILE */
+.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.profile-avatar-section{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px;background:var(--s2);border-radius:var(--r);border:1px solid var(--bd);text-align:center}
+.profile-big-av{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--ac),#4f46e5);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;position:relative}
+.profile-av-badge{position:absolute;bottom:2px;right:2px;width:18px;height:18px;border-radius:50%;background:var(--gr);border:2px solid var(--s2);display:flex;align-items:center;justify-content:center}
+.profile-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--tx)}
+.profile-email-txt{font-size:12px;color:var(--t3)}
+.profile-joined{font-size:11px;color:var(--t3);margin-top:4px}
+.profile-stats-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.profile-mini-stat{background:var(--s1);border:1px solid var(--bd);border-radius:var(--rs);padding:10px;text-align:center}
+.profile-mini-val{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--tx)}
+.profile-mini-lbl{font-size:10px;color:var(--t3);margin-top:2px}
+.section-card{background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--tx);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.section-title-dot{width:8px;height:8px;border-radius:50%;background:var(--ac);flex-shrink:0}
+.inp-group{margin-bottom:12px}
+.inp-lbl{display:block;font-size:11px;font-weight:600;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.inp-field{width:100%;background:var(--s2);border:1px solid var(--bd);color:var(--tx);border-radius:var(--rs);padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;transition:border .12s}
+.inp-field:focus{border-color:var(--ac)}
+.inp-field::placeholder{color:var(--t3)}
+.inp-field:disabled{opacity:.5;cursor:not-allowed}
+.inp-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-save{padding:9px 18px;background:var(--ac);border:none;border-radius:var(--rs);color:#fff;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .15s}
+.btn-save:hover{opacity:.88}
+.btn-outline{padding:9px 18px;background:none;border:1px solid var(--bd2);border-radius:var(--rs);color:var(--t2);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .12s}
+.btn-outline:hover{background:var(--s2);color:var(--tx)}
+.btn-danger{padding:9px 18px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.3);border-radius:var(--rs);color:var(--rd);font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .12s}
+.btn-danger:hover{background:rgba(248,113,113,.2)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+
+/* SETTINGS */
+.settings-grid{display:grid;grid-template-columns:200px 1fr;gap:14px}
+.settings-nav{display:flex;flex-direction:column;gap:2px}
+.set-nav-item{padding:9px 12px;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:500;color:var(--t2);transition:all .12s;border:1px solid transparent}
+.set-nav-item:hover{background:var(--s2);color:var(--tx)}
+.set-nav-item.active{background:var(--acb);color:var(--ac2);border-color:rgba(124,111,247,.2)}
+.settings-section{display:none}
+.settings-section.active{display:block}
+.set-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.set-sub{font-size:12.5px;color:var(--t3);margin-bottom:18px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--bd)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-title{font-size:13.5px;font-weight:500;color:var(--tx);margin-bottom:2px}
+.toggle-desc{font-size:12px;color:var(--t3)}
+.toggle{width:40px;height:22px;border-radius:11px;background:var(--bd2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--ac)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.toggle.on::after{left:21px}
+.theme-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+.theme-opt{border:2px solid var(--bd);border-radius:var(--r);padding:14px;cursor:pointer;text-align:center;transition:all .12s}
+.theme-opt:hover{border-color:var(--bd2)}
+.theme-opt.active{border-color:var(--ac)}
+.theme-opt-preview{width:100%;height:40px;border-radius:6px;margin-bottom:8px}
+.theme-opt-label{font-size:12px;font-weight:600;color:var(--t2)}
+.theme-opt.active .theme-opt-label{color:var(--ac2)}
+.danger-zone{background:rgba(248,113,113,.05);border:1px solid rgba(248,113,113,.2);border-radius:var(--r);padding:16px;margin-top:14px}
+.danger-title{font-size:13px;font-weight:700;color:var(--rd);margin-bottom:10px}
+.danger-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.danger-desc{font-size:12.5px;color:var(--t2);flex:1}
+
+/* BACKEND GUIDE */
+.guide-steps{display:flex;flex-direction:column;gap:0}
+.guide-step{display:flex;gap:16px;padding:18px 0;border-bottom:1px solid var(--bd);position:relative}
+.guide-step:last-child{border-bottom:none}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--acg);border:1px solid rgba(124,111,247,.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--ac2);flex-shrink:0;margin-top:2px}
+.step-body{flex:1}
+.step-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--tx);margin-bottom:5px}
+.step-desc{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:10px}
+.code-block{background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:12px 14px;font-family:monospace;font-size:12px;color:var(--ac2);overflow-x:auto;white-space:pre;line-height:1.6}
+.c-comment{color:var(--t3)}
+.c-key{color:#f7c59f}
+.c-fn{color:#b5ead7}
+.step-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:8px}
+.badge-free{background:rgba(74,222,128,.1);color:var(--gr);border:1px solid rgba(74,222,128,.2)}
+.badge-req{background:rgba(251,191,36,.1);color:var(--am);border:1px solid rgba(251,191,36,.2)}
+.provider-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}
+.provider-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:12px;transition:all .12s}
+.provider-card.rec{border-color:rgba(124,111,247,.4);background:var(--acb)}
+.provider-name{font-size:13px;font-weight:600;color:var(--tx);margin-bottom:2px}
+.provider-desc{font-size:11.5px;color:var(--t3)}
+.provider-tag{font-size:10px;padding:2px 7px;border-radius:20px;background:var(--acg);color:var(--ac2);font-weight:600;display:inline-flex;margin-top:5px}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--s2);border:1px solid var(--bd2);color:var(--tx);padding:10px 14px;border-radius:var(--rs);font-size:12.5px;font-weight:500;transform:translateY(60px);opacity:0;transition:all .25s;z-index:9999;display:flex;align-items:center;gap:7px;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.toast.show{transform:translateY(0);opacity:1}
+.tdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .auth-left{display:none}
+  .auth-right{width:100%;border-left:none;padding:36px 22px}
+  .sidebar{position:absolute;left:0;top:0;bottom:0;min-height:100%;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sb-close{display:flex}
+  .hamburger{display:flex}
+  .workspace{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .profile-grid{grid-template-columns:1fr}
+  .settings-grid{grid-template-columns:1fr}
+  .settings-nav{flex-direction:row;flex-wrap:wrap;margin-bottom:14px}
+  .provider-cards{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .content{padding:10px}
+  .stats{gap:8px;margin-bottom:12px}
+  .stat{padding:10px 11px}
+  .stat-val{font-size:18px}
+  .card-bd{padding:12px 13px}
+  .card-hd{padding:11px 13px}
+  .fr{grid-template-columns:1fr}
+  .inp-row{grid-template-columns:1fr}
+  .theme-opts{grid-template-columns:repeat(3,1fr)}
+  .topbar{padding:0 10px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- LOGIN -->
+<div id="pg-login" class="auth-wrap">
+  <div class="auth-left">
+    <div style="max-width:380px;width:100%">
+      <div class="auth-brand">QR<span>aft</span></div>
+      <div class="auth-tagline">Generate beautiful QR codes for URLs, WiFi, contacts and more — in seconds.</div>
+      <div class="auth-feat"><div class="af-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--ac2)" stroke-width="1.8"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><circle cx="12" cy="12" r="2"/></svg></div><div><div class="af-title">10 QR types</div><div class="af-desc">URL, Text, Email, Phone, SMS, WhatsApp, WiFi, Maps, Calendar, vCard</div></div></div>
+      <div class="auth-feat"><div class="af-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--ac2)" stroke-width="1.8"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg></div><div><div class="af-title">Live preview</div><div class="af-desc">See your QR update as you type with full colour control</div></div></div>
+      <div class="auth-feat"><div class="af-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="var(--ac2)" stroke-width="1.8"><rect x="3" y="2" width="10" height="12" rx="1.5"/><path d="M6 6h4M6 9h4M6 12h2"/></svg></div><div><div class="af-title">Supabase ready</div><div class="af-desc">Full backend integration guide built into the app</div></div></div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+      <div class="auth-form-title">Welcome back</div>
+      <div class="auth-form-sub">No account? <a onclick="showPage('pg-signup')">Sign up free</a></div>
+      <div class="form-field"><label class="form-label">Email address</label><input class="form-inp" id="li-email" type="email" placeholder="you@example.com" oninput="clearErr('li')"/><div class="err-msg" id="li-err">Incorrect email or password.</div></div>
+      <div class="form-field"><label class="form-label">Password</label><div class="pw-wrap"><input class="form-inp" id="li-pass" type="password" placeholder="Your password" oninput="clearErr('li')"/><button class="pw-toggle" onclick="togglePw('li-pass',this)" type="button"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg></button></div></div>
+      <div class="remember-row"><label class="check-wrap"><input type="checkbox" id="li-rem"/><span class="check-label">Remember me</span></label><a class="forgot-link" onclick="showPage('pg-forgot')">Forgot password?</a></div>
+      <button class="btn-auth" onclick="doLogin()">Sign in</button>
+      <div class="divider-or">or</div>
+      <button class="btn-google" onclick="toast('Connect Supabase to enable Google OAuth — see the Backend Guide.','warn')">
+        <svg width="14" height="14" viewBox="0 0 16 16"><path fill="#4285F4" d="M14.9 8.16c0-.52-.04-1.02-.13-1.5H8v2.84h3.87a3.31 3.31 0 01-1.44 2.17v1.8h2.33c1.36-1.25 2.14-3.1 2.14-5.31z"/><path fill="#34A853" d="M8 15c1.95 0 3.58-.65 4.77-1.75l-2.33-1.8c-.65.43-1.47.69-2.44.69-1.88 0-3.47-1.27-4.03-2.97H1.57v1.85A7 7 0 008 15z"/><path fill="#FBBC05" d="M3.97 9.17A4.21 4.21 0 013.75 8c0-.41.07-.81.22-1.17V4.98H1.57A7 7 0 001 8c0 1.13.27 2.2.57 3.02l2.4-1.85z"/><path fill="#EA4335" d="M8 3.86c1.06 0 2.01.36 2.76 1.08l2.07-2.07A7 7 0 008 1a7 7 0 00-6.43 3.98l2.4 1.85C4.53 5.13 6.12 3.86 8 3.86z"/></svg>
+        Continue with Google
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--t3);text-align:center;margin-top:18px">By continuing you agree to our <a style="color:var(--ac);cursor:pointer">Terms</a> &amp; <a style="color:var(--ac);cursor:pointer">Privacy</a></div>
+  </div>
+</div>
+
+<!-- SIGNUP -->
+<div id="pg-signup" class="auth-wrap" style="display:none">
+  <div class="auth-left">
+    <div style="max-width:380px;width:100%">
+      <div class="auth-brand">QR<span>aft</span></div>
+      <div class="auth-tagline">Join thousands creating beautiful QR codes every day.</div>
+      <div style="background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-top:18px">
+        <div style="font-size:10.5px;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:11px">Free plan includes</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2)"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="var(--gr)" stroke-width="2.2"><path d="M2 7l3.5 3.5L12 4"/></svg>Unlimited QR codes (10 types)</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2)"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="var(--gr)" stroke-width="2.2"><path d="M2 7l3.5 3.5L12 4"/></svg>PNG &amp; SVG export</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2)"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="var(--gr)" stroke-width="2.2"><path d="M2 7l3.5 3.5L12 4"/></svg>Custom colors &amp; sizes</div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2)"><svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="var(--gr)" stroke-width="2.2"><path d="M2 7l3.5 3.5L12 4"/></svg>Profile &amp; settings dashboard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+      <div class="auth-form-title">Create account</div>
+      <div class="auth-form-sub">Have an account? <a onclick="showPage('pg-login')">Sign in</a></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-field"><label class="form-label">First name</label><input class="form-inp" id="su-first" placeholder="John" oninput="clearErr('su')"/></div>
+        <div class="form-field"><label class="form-label">Last name</label><input class="form-inp" id="su-last" placeholder="Doe" oninput="clearErr('su')"/></div>
+      </div>
+      <div class="form-field"><label class="form-label">Email address</label><input class="form-inp" id="su-email" type="email" placeholder="you@example.com" oninput="clearErr('su')"/><div class="err-msg" id="su-err">Please fill all fields correctly.</div></div>
+      <div class="form-field"><label class="form-label">Password</label><div class="pw-wrap"><input class="form-inp" id="su-pass" type="password" placeholder="Min 8 characters" oninput="checkStr(this.value);clearErr('su')"/><button class="pw-toggle" onclick="togglePw('su-pass',this)" type="button"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg></button></div><div class="str-bar" id="str-bar"><div class="str-seg" id="s1"></div><div class="str-seg" id="s2"></div><div class="str-seg" id="s3"></div><div class="str-seg" id="s4"></div></div><div class="str-lbl" id="str-lbl"></div></div>
+      <div class="form-field"><label class="form-label">Confirm password</label><input class="form-inp" id="su-conf" type="password" placeholder="Repeat password" oninput="clearErr('su')"/></div>
+      <button class="btn-auth" onclick="doSignup()">Create account</button>
+      <div class="divider-or">or</div>
+      <button class="btn-google" onclick="toast('Connect Supabase for Google OAuth — see the Backend Guide.','warn')"><svg width="14" height="14" viewBox="0 0 16 16"><path fill="#4285F4" d="M14.9 8.16c0-.52-.04-1.02-.13-1.5H8v2.84h3.87a3.31 3.31 0 01-1.44 2.17v1.8h2.33c1.36-1.25 2.14-3.1 2.14-5.31z"/><path fill="#34A853" d="M8 15c1.95 0 3.58-.65 4.77-1.75l-2.33-1.8c-.65.43-1.47.69-2.44.69-1.88 0-3.47-1.27-4.03-2.97H1.57v1.85A7 7 0 008 15z"/><path fill="#FBBC05" d="M3.97 9.17A4.21 4.21 0 013.75 8c0-.41.07-.81.22-1.17V4.98H1.57A7 7 0 001 8c0 1.13.27 2.2.57 3.02l2.4-1.85z"/><path fill="#EA4335" d="M8 3.86c1.06 0 2.01.36 2.76 1.08l2.07-2.07A7 7 0 008 1a7 7 0 00-6.43 3.98l2.4 1.85C4.53 5.13 6.12 3.86 8 3.86z"/></svg>Continue with Google</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT -->
+<div id="pg-forgot" class="auth-wrap" style="display:none">
+  <div class="auth-left">
+    <div style="max-width:320px;width:100%;text-align:center">
+      <div style="width:56px;height:56px;border-radius:14px;background:var(--acg);border:1px solid rgba(124,111,247,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 18px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ac2)" stroke-width="1.8"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg></div>
+      <div class="auth-brand">Reset password</div>
+      <div class="auth-tagline" style="text-align:center;margin-top:8px">Enter your email and we'll send a reset link.</div>
+    </div>
+  </div>
+  <div class="auth-right">
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+      <div class="auth-form-title">Forgot password?</div>
+      <div class="auth-form-sub">Remember it? <a onclick="showPage('pg-login')">Back to login</a></div>
+      <div class="form-field"><label class="form-label">Email address</label><input class="form-inp" id="fp-email" type="email" placeholder="you@example.com"/></div>
+      <button class="btn-auth" onclick="doForgot()">Send reset link</button>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="pg-dash" class="app-shell" style="display:none">
+  <div class="sidebar-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-brand">QR<span>aft</span></div>
+      <button class="sb-close" onclick="closeSidebar()"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2l12 12M14 2L2 14"/></svg></button>
+    </div>
+    <div class="sb-user" onclick="switchView('profile')">
+      <div class="sb-avatar" id="sb-av">JD</div>
+      <div style="min-width:0"><div class="sb-uname" id="sb-name">John Doe</div><div class="sb-uemail" id="sb-email-disp">john@example.com</div></div>
+    </div>
+    <nav class="nav">
+      <div class="nav-sec">Studio</div>
+      <div class="nav-item active" id="nav-generator" onclick="switchView('generator')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><circle cx="12" cy="12" r="2"/></svg>Generator</div>
+      <div class="nav-item" id="nav-guide" onclick="switchView('guide')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="2" width="10" height="12" rx="1.5"/><path d="M6 6h4M6 9h4M6 12h2"/></svg>Backend Guide</div>
+      <div class="nav-sec">Account</div>
+      <div class="nav-item" id="nav-profile" onclick="switchView('profile')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>Profile</div>
+      <div class="nav-item" id="nav-settings" onclick="switchView('settings')"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.3 3.3l1.4 1.4M11.3 11.3l1.4 1.4M3.3 12.7l1.4-1.4M11.3 4.7l1.4-1.4"/></svg>Settings</div>
+    </nav>
+    <div class="sb-bottom">
+      <button class="btn-logout" onclick="doLogout()"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M10 8H2M6 4l-4 4 4 4M10 3h3a1 1 0 011 1v8a1 1 0 01-1 1h-3"/></svg>Sign out</button>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <div class="topbar">
+      <div class="tb-left">
+        <button class="hamburger" onclick="openSidebar()"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 4h12M2 8h12M2 12h12"/></svg></button>
+        <div class="tb-title" id="tb-title">QR Generator</div>
+      </div>
+      <div class="tb-right">
+        <button class="tb-btn" id="tb-clear-btn" onclick="clearAll()">Clear</button>
+        <div class="sb-avatar" id="tb-av" style="width:28px;height:28px;font-size:11px;cursor:pointer" onclick="switchView('profile')">JD</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- GENERATOR -->
+      <div id="view-generator" class="page-view active">
+        <div class="stats">
+          <div class="stat"><div class="stat-lbl">QRs Created</div><div class="stat-val" id="st-count">0</div><div class="stat-hint"><span class="dot" style="background:var(--gr)"></span>Session</div></div>
+          <div class="stat"><div class="stat-lbl">Last Type</div><div class="stat-val" id="st-type" style="font-size:13px;padding-top:4px">—</div><div class="stat-hint">Category</div></div>
+          <div class="stat"><div class="stat-lbl">Error Level</div><div class="stat-val" id="st-ec" style="font-size:16px;padding-top:2px">H</div><div class="stat-hint"><span class="dot" style="background:var(--am)"></span>30%</div></div>
+          <div class="stat"><div class="stat-lbl">Size (px)</div><div class="stat-val" id="st-size">300</div><div class="stat-hint">Output</div></div>
+        </div>
+        <div class="workspace">
+          <div>
+            <div class="card">
+              <div class="card-hd"><span class="card-title">QR Builder</span><span class="chip chip-p">10 types</span></div>
+              <div class="card-bd">
+                <div class="tabs">
+                  <div class="tab active" onclick="setType(this,'url')">URL</div>
+                  <div class="tab" onclick="setType(this,'text')">Text</div>
+                  <div class="tab" onclick="setType(this,'email')">Email</div>
+                  <div class="tab" onclick="setType(this,'phone')">Phone</div>
+                  <div class="tab" onclick="setType(this,'sms')">SMS</div>
+                  <div class="tab" onclick="setType(this,'whatsapp')">WhatsApp</div>
+                  <div class="tab" onclick="setType(this,'wifi')">WiFi</div>
+                  <div class="tab" onclick="setType(this,'maps')">Maps</div>
+                  <div class="tab" onclick="setType(this,'calendar')">Calendar</div>
+                  <div class="tab" onclick="setType(this,'vcard')">vCard</div>
+                </div>
+                <div id="f-url"><div class="fg"><label class="fl">Website URL</label><input class="fi" id="url-i" placeholder="https://example.com" oninput="liveGen()"/></div></div>
+                <div id="f-text" style="display:none"><div class="fg"><label class="fl">Text content</label><textarea class="ft" id="txt-i" placeholder="Enter any text…" oninput="liveGen()"></textarea></div></div>
+                <div id="f-email" style="display:none">
+                  <div class="fg"><label class="fl">Email address</label><input class="fi" id="em-a" placeholder="hello@example.com" oninput="liveGen()"/></div>
+                  <div class="fr"><div class="fg"><label class="fl">Subject</label><input class="fi" id="em-s" placeholder="Subject" oninput="liveGen()"/></div><div class="fg"><label class="fl">Body</label><input class="fi" id="em-b" placeholder="Message" oninput="liveGen()"/></div></div>
+                </div>
+                <div id="f-phone" style="display:none"><div class="fg"><label class="fl">Phone number</label><input class="fi" id="ph-i" placeholder="+1 234 567 8900" oninput="liveGen()"/></div></div>
+                <div id="f-sms" style="display:none">
+                  <div class="fg"><label class="fl">Phone number</label><input class="fi" id="sms-num" placeholder="+1 234 567 8900" oninput="liveGen()"/></div>
+                  <div class="fg"><label class="fl">Message (optional)</label><textarea class="ft" id="sms-msg" placeholder="Hi there! Check this out…" oninput="liveGen()"></textarea></div>
+                </div>
+                <div id="f-whatsapp" style="display:none">
+                  <div class="fg"><label class="fl">WhatsApp number (with country code)</label><input class="fi" id="wa-num" placeholder="+2348012345678" oninput="liveGen()"/></div>
+                  <div class="fg"><label class="fl">Pre-filled message (optional)</label><textarea class="ft" id="wa-msg" placeholder="Hello! I'd like to chat…" oninput="liveGen()"></textarea></div>
+                </div>
+                <div id="f-wifi" style="display:none">
+                  <div class="fr"><div class="fg"><label class="fl">Network SSID</label><input class="fi" id="wf-s" placeholder="MyNetwork" oninput="liveGen()"/></div><div class="fg"><label class="fl">Password</label><input class="fi" id="wf-p" type="password" placeholder="Password" oninput="liveGen()"/></div></div>
+                  <div class="fg"><label class="fl">Security</label><select class="fs" id="wf-t" onchange="liveGen()"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">Open</option></select></div>
+                </div>
+                <div id="f-maps" style="display:none">
+                  <div class="fr"><div class="fg"><label class="fl">Latitude</label><input class="fi" id="mp-lat" placeholder="40.7128" oninput="liveGen()"/></div><div class="fg"><label class="fl">Longitude</label><input class="fi" id="mp-lng" placeholder="-74.0060" oninput="liveGen()"/></div></div>
+                  <div class="fg"><label class="fl">Label / Place name (optional)</label><input class="fi" id="mp-lbl" placeholder="New York City" oninput="liveGen()"/></div>
+                  <div style="font-size:11px;color:var(--t3);margin-top:-6px;margin-bottom:10px">Tip: get lat/lng by right-clicking any location on Google Maps</div>
+                </div>
+                <div id="f-calendar" style="display:none">
+                  <div class="fg"><label class="fl">Event title</label><input class="fi" id="cal-title" placeholder="Team Meeting" oninput="liveGen()"/></div>
+                  <div class="fr"><div class="fg"><label class="fl">Start date &amp; time</label><input class="fi" id="cal-start" type="datetime-local" oninput="liveGen()"/></div><div class="fg"><label class="fl">End date &amp; time</label><input class="fi" id="cal-end" type="datetime-local" oninput="liveGen()"/></div></div>
+                  <div class="fg"><label class="fl">Location (optional)</label><input class="fi" id="cal-loc" placeholder="Conference Room A" oninput="liveGen()"/></div>
+                  <div class="fg"><label class="fl">Description (optional)</label><textarea class="ft" style="min-height:50px" id="cal-desc" placeholder="Event details…" oninput="liveGen()"></textarea></div>
+                </div>
+                <div id="f-vcard" style="display:none">
+                  <div class="fr"><div class="fg"><label class="fl">First name</label><input class="fi" id="vc-f" placeholder="John" oninput="liveGen()"/></div><div class="fg"><label class="fl">Last name</label><input class="fi" id="vc-l" placeholder="Doe" oninput="liveGen()"/></div></div>
+                  <div class="fr"><div class="fg"><label class="fl">Phone</label><input class="fi" id="vc-p" placeholder="+1 234 567" oninput="liveGen()"/></div><div class="fg"><label class="fl">Email</label><input class="fi" id="vc-e" placeholder="john@co.com" oninput="liveGen()"/></div></div>
+                  <div class="fg"><label class="fl">Organization</label><input class="fi" id="vc-o" placeholder="Acme Corp" oninput="liveGen()"/></div>
+                </div>
+                <div class="sdiv">Customise</div>
+                <div class="crow">
+                  <div class="fg"><label class="fl">Foreground</label><div class="cfield" onclick="document.getElementById('fc').click()"><div class="cswatch" id="fgsw"></div><span class="chex" id="fghx">#000000</span><input type="color" id="fc" class="cinput" value="#000000" oninput="updCol('fg',this.value)"/></div></div>
+                  <div class="fg"><label class="fl">Background</label><div class="cfield" onclick="document.getElementById('bc').click()"><div class="cswatch" id="bgsw"></div><span class="chex" id="bghx">#ffffff</span><input type="color" id="bc" class="cinput" value="#ffffff" oninput="updCol('bg',this.value)"/></div></div>
+                </div>
+                <div class="fg"><label class="fl">Size (px)</label><div class="srow"><input type="range" class="sslider" id="sz" min="100" max="600" value="300" step="10" oninput="updSz(this.value)"/><span class="sval" id="szv">300</span></div></div>
+                <div class="fg"><label class="fl">Error correction</label>
+                  <div class="ecopts">
+                    <div class="ecopt" onclick="setEC(this,'L')"><div class="ecopt-ico">◻</div><div class="ecopt-lbl">Low 7%</div></div>
+                    <div class="ecopt" onclick="setEC(this,'M')"><div class="ecopt-ico">◫</div><div class="ecopt-lbl">Med 15%</div></div>
+                    <div class="ecopt active" onclick="setEC(this,'H')"><div class="ecopt-ico">■</div><div class="ecopt-lbl">High 30%</div></div>
+                  </div>
+                </div>
+                <button class="btngen" onclick="genQR()">⚡ Generate QR Code</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:12px">
+              <div class="card-hd"><span class="card-title">Preview</span><span class="chip chip-g" id="prev-badge" style="display:none">—</span></div>
+              <div class="card-bd" style="padding:12px">
+                <div class="qr-box"><div id="qr-out"><div class="qr-ph"><div class="qr-ph-ico">⬛</div><div class="qr-ph-txt">Fill in content<br>and hit Generate</div></div></div></div>
+                <div class="meta-box" id="meta-box"><div class="meta-row"><span class="meta-k">Type</span><span class="meta-v" id="m-type">—</span></div><div class="meta-row"><span class="meta-k">Size</span><span class="meta-v" id="m-size">—</span></div><div class="meta-row"><span class="meta-k">Error level</span><span class="meta-v" id="m-ec">—</span></div></div>
+                <div class="actbtns" id="act-btns" style="display:none"><button class="btndl" onclick="dlQR('png')"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 1v9M5 7l3 3 3-3M2 13h12"/></svg>PNG</button><button class="btndl" onclick="dlQR('svg')"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 1v9M5 7l3 3 3-3M2 13h12"/></svg>SVG</button></div>
+                <button class="btncopy" id="cpybtn" onclick="cpyQR()" style="display:none"><svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V2h9"/></svg>Copy to clipboard</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-hd"><span class="card-title">Recent</span><span style="font-size:10.5px;color:var(--t3)" id="hist-cnt">0 items</span></div>
+              <div class="card-bd" style="padding:8px"><div class="hist-list" id="hist-list"><div class="empty-hist">No QR codes yet.<br>Generate one above!</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BACKEND GUIDE -->
+      <div id="view-guide" class="page-view">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:42px;height:42px;border-radius:10px;background:var(--acg);border:1px solid rgba(124,111,247,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--ac2)" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
+          <div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--tx)">Supabase Backend Integration Guide</div><div style="font-size:12.5px;color:var(--t3);margin-top:2px">Replace localStorage with a real database + auth in under 30 minutes</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+          <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px">
+            <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:10px">Why Supabase?</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t2)"><span style="color:var(--gr)">✓</span>Free tier — 500MB DB, 50k MAU</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t2)"><span style="color:var(--gr)">✓</span>Built-in email + Google auth</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t2)"><span style="color:var(--gr)">✓</span>JavaScript SDK — no backend server</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--t2)"><span style="color:var(--gr)">✓</span>Real-time capabilities built in</div>
+            </div>
+          </div>
+          <div style="background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:16px">
+            <div style="font-size:11px;color:var(--t3);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin-bottom:10px">Alternatives</div>
+            <div class="provider-cards" style="margin:0;gap:7px">
+              <div class="provider-card rec"><div class="provider-name">Supabase</div><div class="provider-desc">Open source, Postgres</div><span class="provider-tag">Recommended</span></div>
+              <div class="provider-card"><div class="provider-name">Firebase</div><div class="provider-desc">Google, NoSQL</div></div>
+              <div class="provider-card"><div class="provider-name">PocketBase</div><div class="provider-desc">Self-hosted, Go</div></div>
+              <div class="provider-card"><div class="provider-name">Auth0</div><div class="provider-desc">Auth specialist</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-hd"><span class="card-title">Step-by-Step Integration</span><span class="chip chip-p">Supabase</span></div>
+          <div class="card-bd">
+            <div class="guide-steps">
+              <div class="guide-step"><div class="step-num">1</div><div class="step-body"><div class="step-badge badge-free">Free • 2 min</div><div class="step-title">Create a Supabase project</div><div class="step-desc">Go to <strong style="color:var(--ac2)">supabase.com</strong> → New project. Copy your <strong style="color:var(--ac2)">Project URL</strong> and <strong style="color:var(--ac2)">anon public key</strong> from Settings → API.</div></div></div>
+              <div class="guide-step"><div class="step-num">2</div><div class="step-body"><div class="step-badge badge-req">In your HTML file</div><div class="step-title">Add the Supabase SDK</div><div class="step-desc">Add this script tag in your &lt;head&gt; before your own script:</div><div class="code-block">&lt;script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"&gt;&lt;/script&gt;</div></div></div>
+              <div class="guide-step"><div class="step-num">3</div><div class="step-body"><div class="step-badge badge-req">Replace in your script</div><div class="step-title">Initialize Supabase client</div><div class="step-desc">At the top of your &lt;script&gt; block, add:</div><div class="code-block"><span class="c-comment">// Replace these with your real values from supabase.com</span>
+<span class="c-key">const</span> SUPABASE_URL = <span style="color:var(--ac2)">'https://xxxx.supabase.co'</span>
+<span class="c-key">const</span> SUPABASE_KEY = <span style="color:var(--ac2)">'your-anon-public-key-here'</span>
+<span class="c-key">const</span> supabase = window.supabase.<span class="c-fn">createClient</span>(SUPABASE_URL, SUPABASE_KEY)</div></div></div>
+              <div class="guide-step"><div class="step-num">4</div><div class="step-body"><div class="step-badge badge-req">Replace doSignup()</div><div class="step-title">Replace signup with Supabase Auth</div><div class="code-block"><span class="c-key">async function</span> <span class="c-fn">doSignup</span>() {
+  <span class="c-comment">// ... keep your validation code ...</span>
+  <span class="c-key">const</span> { data, error } = <span class="c-key">await</span> supabase.auth.<span class="c-fn">signUp</span>({
+    email: email, password: pass,
+    options: { data: { first, last } }
+  })
+  <span class="c-key">if</span> (error) { <span class="c-fn">showErr</span>(<span style="color:var(--ac2)">'su'</span>, error.message); <span class="c-key">return</span> }
+  <span class="c-fn">enterDash</span>({ first, last, email, initials: (first[0]+last[0]).<span class="c-fn">toUpperCase</span>() })
+}</div></div></div>
+              <div class="guide-step"><div class="step-num">5</div><div class="step-body"><div class="step-badge badge-req">Replace doLogin()</div><div class="step-title">Replace login with Supabase Auth</div><div class="code-block"><span class="c-key">async function</span> <span class="c-fn">doLogin</span>() {
+  <span class="c-key">const</span> email = document.<span class="c-fn">getElementById</span>(<span style="color:var(--ac2)">'li-email'</span>).value.<span class="c-fn">trim</span>()
+  <span class="c-key">const</span> pass  = document.<span class="c-fn">getElementById</span>(<span style="color:var(--ac2)">'li-pass'</span>).value
+  <span class="c-key">const</span> { data, error } = <span class="c-key">await</span> supabase.auth.<span class="c-fn">signInWithPassword</span>({ email, password: pass })
+  <span class="c-key">if</span> (error) { <span class="c-fn">showErr</span>(<span style="color:var(--ac2)">'li'</span>, <span style="color:var(--ac2)">'Incorrect email or password.'</span>); <span class="c-key">return</span> }
+  <span class="c-key">const</span> meta = data.user.user_metadata
+  <span class="c-fn">enterDash</span>({ first: meta.first, last: meta.last, email, initials: (meta.first[0]+meta.last[0]).<span class="c-fn">toUpperCase</span>() })
+}</div></div></div>
+              <div class="guide-step"><div class="step-num">6</div><div class="step-body"><div class="step-badge badge-req">Replace doLogout()</div><div class="step-title">Replace logout</div><div class="code-block"><span class="c-key">async function</span> <span class="c-fn">doLogout</span>() {
+  <span class="c-key">await</span> supabase.auth.<span class="c-fn">signOut</span>()
+  <span class="c-fn">showPage</span>(<span style="color:var(--ac2)">'pg-login'</span>)
+  <span class="c-fn">toast</span>(<span style="color:var(--ac2)">'Signed out.'</span>)
+}</div></div></div>
+              <div class="guide-step"><div class="step-num">7</div><div class="step-body"><div class="step-badge badge-req">Replace init()</div><div class="step-title">Session persistence (auto-login on refresh)</div><div class="code-block">supabase.auth.<span class="c-fn">getSession</span>().<span class="c-fn">then</span>(({ data }) => {
+  <span class="c-key">if</span> (data.session) {
+    <span class="c-key">const</span> meta = data.session.user.user_metadata
+    <span class="c-fn">enterDash</span>({
+      first: meta.first, last: meta.last,
+      email: data.session.user.email,
+      initials: (meta.first[0]+meta.last[0]).<span class="c-fn">toUpperCase</span>()
+    })
+  } <span class="c-key">else</span> { <span class="c-fn">showPage</span>(<span style="color:var(--ac2)">'pg-login'</span>) }
+})</div></div></div>
+              <div class="guide-step"><div class="step-num">8</div><div class="step-body"><div class="step-badge badge-free">Optional • Google OAuth</div><div class="step-title">Enable Google Login</div><div class="step-desc">In Supabase Dashboard → Authentication → Providers → Google → enable and paste your Google OAuth credentials. Then update the Google button:</div><div class="code-block"><span class="c-key">async function</span> <span class="c-fn">signInWithGoogle</span>() {
+  <span class="c-key">await</span> supabase.auth.<span class="c-fn">signInWithOAuth</span>({
+    provider: <span style="color:var(--ac2)">'google'</span>,
+    options: { redirectTo: window.location.origin }
+  })
+}</div></div></div>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);border-radius:var(--r);padding:14px 16px;margin-top:14px;display:flex;align-items:flex-start;gap:12px">
+          <span style="font-size:18px;flex-shrink:0">✅</span>
+          <div><div style="font-size:13px;font-weight:600;color:var(--gr);margin-bottom:4px">Your app is now production-ready!</div><div style="font-size:12.5px;color:var(--t2);line-height:1.6">All user accounts will be stored securely in Supabase's Postgres database. Passwords are hashed automatically. View all users in your Supabase dashboard under Authentication → Users.</div></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="view-profile" class="page-view">
+        <div class="profile-grid">
+          <div>
+            <div class="profile-avatar-section" style="margin-bottom:14px">
+              <div class="profile-big-av" id="prof-big-av">JD<div class="profile-av-badge"><svg width="9" height="9" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1.8"><path d="M2 5l2.5 2.5L8 3"/></svg></div></div>
+              <div class="profile-name" id="prof-name">John Doe</div>
+              <div class="profile-email-txt" id="prof-email-disp">john@example.com</div>
+              <div class="profile-joined" id="prof-joined">Joined today</div>
+              <div class="profile-stats-row">
+                <div class="profile-mini-stat"><div class="profile-mini-val" id="prof-qr-count">0</div><div class="profile-mini-lbl">QRs Created</div></div>
+                <div class="profile-mini-stat"><div class="profile-mini-val">10</div><div class="profile-mini-lbl">Types Available</div></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="section-card">
+              <div class="section-title"><div class="section-title-dot"></div>Personal Information</div>
+              <div class="inp-row"><div class="inp-group"><label class="inp-lbl">First name</label><input class="inp-field" id="pf-first" placeholder="John"/></div><div class="inp-group"><label class="inp-lbl">Last name</label><input class="inp-field" id="pf-last" placeholder="Doe"/></div></div>
+              <div class="inp-group"><label class="inp-lbl">Email address</label><input class="inp-field" id="pf-email" placeholder="john@example.com" disabled/></div>
+              <div class="inp-group"><label class="inp-lbl">Phone number</label><input class="inp-field" id="pf-phone" placeholder="+1 234 567 8900"/></div>
+              <div class="inp-group"><label class="inp-lbl">Bio</label><textarea class="inp-field" style="resize:vertical;min-height:60px;line-height:1.5" id="pf-bio" placeholder="Tell us a little about yourself…"></textarea></div>
+              <div class="btn-row"><button class="btn-save" onclick="saveProfile()">Save changes</button><button class="btn-outline" onclick="resetProfile()">Reset</button></div>
+            </div>
+            <div class="section-card">
+              <div class="section-title"><div class="section-title-dot" style="background:var(--am)"></div>Change Password</div>
+              <div class="inp-group"><label class="inp-lbl">Current password</label><input class="inp-field" type="password" id="pf-curpw" placeholder="Current password"/></div>
+              <div class="inp-row"><div class="inp-group"><label class="inp-lbl">New password</label><input class="inp-field" type="password" id="pf-newpw" placeholder="New password"/></div><div class="inp-group"><label class="inp-lbl">Confirm new</label><input class="inp-field" type="password" id="pf-confpw" placeholder="Confirm"/></div></div>
+              <div class="btn-row"><button class="btn-save" onclick="changePassword()">Update password</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="view-settings" class="page-view">
+        <div class="settings-grid">
+          <div class="settings-nav">
+            <div class="set-nav-item active" onclick="setSettingsTab(this,'set-appearance')">🎨 Appearance</div>
+            <div class="set-nav-item" onclick="setSettingsTab(this,'set-notifications')">🔔 Notifications</div>
+            <div class="set-nav-item" onclick="setSettingsTab(this,'set-qr-defaults')">⚙️ QR Defaults</div>
+            <div class="set-nav-item" onclick="setSettingsTab(this,'set-privacy')">🔒 Privacy</div>
+            <div class="set-nav-item" onclick="setSettingsTab(this,'set-danger')">⚠️ Danger Zone</div>
+          </div>
+          <div>
+            <div class="settings-section active" id="set-appearance">
+              <div class="set-title">Appearance</div><div class="set-sub">Customise how QRaft looks for you</div>
+              <div class="section-card" style="margin-bottom:0">
+                <div class="section-title"><div class="section-title-dot"></div>Theme</div>
+                <div class="theme-opts">
+                  <div class="theme-opt active" onclick="setThemeOpt(this,'dark')"><div class="theme-opt-preview" style="background:linear-gradient(135deg,#0b0b10,#1a1a25)"></div><div class="theme-opt-label">Dark</div></div>
+                  <div class="theme-opt" onclick="setThemeOpt(this,'light')"><div class="theme-opt-preview" style="background:linear-gradient(135deg,#f8f8fc,#e8e8f0)"></div><div class="theme-opt-label">Light</div></div>
+                  <div class="theme-opt" onclick="setThemeOpt(this,'system')"><div class="theme-opt-preview" style="background:linear-gradient(135deg,#0b0b10 50%,#f8f8fc 50%)"></div><div class="theme-opt-label">System</div></div>
+                </div>
+                <div class="section-title" style="margin-top:16px"><div class="section-title-dot"></div>Accent colour</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+                  <div onclick="setAccent(this,'#7c6ff7')" style="width:28px;height:28px;border-radius:50%;background:#7c6ff7;cursor:pointer;border:2px solid white;box-shadow:0 0 0 2px #7c6ff7"></div>
+                  <div onclick="setAccent(this,'#f87171')" style="width:28px;height:28px;border-radius:50%;background:#f87171;cursor:pointer;border:2px solid transparent"></div>
+                  <div onclick="setAccent(this,'#4ade80')" style="width:28px;height:28px;border-radius:50%;background:#4ade80;cursor:pointer;border:2px solid transparent"></div>
+                  <div onclick="setAccent(this,'#60a5fa')" style="width:28px;height:28px;border-radius:50%;background:#60a5fa;cursor:pointer;border:2px solid transparent"></div>
+                  <div onclick="setAccent(this,'#fbbf24')" style="width:28px;height:28px;border-radius:50%;background:#fbbf24;cursor:pointer;border:2px solid transparent"></div>
+                  <div onclick="setAccent(this,'#f472b6')" style="width:28px;height:28px;border-radius:50%;background:#f472b6;cursor:pointer;border:2px solid transparent"></div>
+                </div>
+              </div>
+            </div>
+            <div class="settings-section" id="set-notifications">
+              <div class="set-title">Notifications</div><div class="set-sub">Control what alerts and emails you receive</div>
+              <div class="section-card" style="margin-bottom:0">
+                <div class="toggle-row"><div><div class="toggle-title">Generation success toast</div><div class="toggle-desc">Show a notification when a QR code is generated</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                <div class="toggle-row"><div><div class="toggle-title">Email digest</div><div class="toggle-desc">Weekly summary of your QR activity</div></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+                <div class="toggle-row"><div><div class="toggle-title">Product updates</div><div class="toggle-desc">New features and improvements from QRaft</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                <div class="toggle-row"><div><div class="toggle-title">Security alerts</div><div class="toggle-desc">Notify me of new sign-ins to my account</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+              </div>
+            </div>
+            <div class="settings-section" id="set-qr-defaults">
+              <div class="set-title">QR Defaults</div><div class="set-sub">Set your default preferences for new QR codes</div>
+              <div class="section-card" style="margin-bottom:0">
+                <div class="inp-group"><label class="inp-lbl">Default QR type</label><select class="inp-field"><option>URL</option><option>Text</option><option>Email</option><option>Phone</option><option>SMS</option><option>WhatsApp</option><option>WiFi</option><option>Maps</option><option>Calendar</option><option>vCard</option></select></div>
+                <div class="inp-row"><div class="inp-group"><label class="inp-lbl">Default foreground</label><input class="inp-field" type="color" value="#000000" style="padding:5px;height:40px"/></div><div class="inp-group"><label class="inp-lbl">Default background</label><input class="inp-field" type="color" value="#ffffff" style="padding:5px;height:40px"/></div></div>
+                <div class="inp-group"><label class="inp-lbl">Default size (px)</label><input class="inp-field" type="number" value="300" min="100" max="600" step="10"/></div>
+                <div class="inp-group"><label class="inp-lbl">Default error correction</label><select class="inp-field"><option>H — High (30%)</option><option>M — Medium (15%)</option><option>L — Low (7%)</option></select></div>
+                <div class="btn-row"><button class="btn-save" onclick="toast('Default settings saved!')">Save defaults</button></div>
+              </div>
+            </div>
+            <div class="settings-section" id="set-privacy">
+              <div class="set-title">Privacy</div><div class="set-sub">Control your data and privacy preferences</div>
+              <div class="section-card" style="margin-bottom:0">
+                <div class="toggle-row"><div><div class="toggle-title">Save generation history</div><div class="toggle-desc">Keep a record of QR codes you've generated</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                <div class="toggle-row"><div><div class="toggle-title">Analytics</div><div class="toggle-desc">Help improve QRaft by sharing anonymous usage data</div></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                <div class="toggle-row"><div><div class="toggle-title">Two-factor authentication</div><div class="toggle-desc">Add an extra layer of security to your account</div></div><div class="toggle" onclick="this.classList.toggle('on');toast('2FA requires Supabase — see the Backend Guide.','warn')"></div></div>
+              </div>
+            </div>
+            <div class="settings-section" id="set-danger">
+              <div class="set-title">Danger Zone</div><div class="set-sub">Irreversible actions — proceed with caution</div>
+              <div class="danger-zone">
+                <div class="danger-title">⚠️ Danger Zone</div>
+                <div class="danger-row" style="margin-bottom:12px"><div class="danger-desc"><strong style="color:var(--tx)">Clear all history</strong><br>Permanently delete your QR generation history from this session.</div><button class="btn-danger" onclick="clearHist()">Clear history</button></div>
+                <div style="height:1px;background:rgba(248,113,113,.15);margin:12px 0"></div>
+                <div class="danger-row"><div class="danger-desc"><strong style="color:var(--tx)">Delete account</strong><br>Permanently remove your account and all associated data. This cannot be undone.</div><button class="btn-danger" onclick="toast('Account deletion requires Supabase — see the Backend Guide.','warn')">Delete account</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><div class="tdot" id="tdot"></div><span id="tmsg">Done!</span></div>
+
+<script>
+const DB='qraft_u3',SK='qraft_s3';
+let curType='url',curEC='H',curSz=300,fgC='#000000',bgC='#ffffff';
+let sesCount=0,hist=[],currentUser=null;
+
+document.getElementById('fgsw').style.background=fgC;
+document.getElementById('bgsw').style.background=bgC;
+
+function getU(){try{return JSON.parse(localStorage.getItem(DB)||'[]')}catch(e){return[]}}
+function saveU(u){localStorage.setItem(DB,JSON.stringify(u))}
+function getSes(){try{return JSON.parse(localStorage.getItem(SK)||'null')}catch(e){return null}}
+function saveSes(u){localStorage.setItem(SK,JSON.stringify(u))}
+function clearSes(){localStorage.removeItem(SK)}
+
+function showPage(id){
+  ['pg-login','pg-signup','pg-forgot','pg-dash'].forEach(p=>{
+    const el=document.getElementById(p);
+    if(el)el.style.display=p===id?'flex':'none';
+  });
+}
+
+function clearErr(p){const e=document.getElementById(p+'-err');if(e)e.classList.remove('show');}
+function showErr(p,msg){const e=document.getElementById(p+'-err');if(e){e.textContent=msg;e.classList.add('show');}}
+
+function togglePw(id,btn){
+  const inp=document.getElementById(id);const show=inp.type==='password';inp.type=show?'text':'password';
+  btn.innerHTML=show
+    ?'<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2l12 12M6.5 6.7A2.5 2.5 0 019.3 9.5M4.3 4.5C3 5.4 2 6.7 1 8s2.5 5 7 5c1.3 0 2.5-.3 3.5-.8M7 3.1C7.3 3 7.7 3 8 3c4.5 0 7 5 7 5s-.6 1.1-1.7 2.2"/></svg>'
+    :'<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>';
+}
+
+function checkStr(pw){
+  let s=0;if(pw.length>=8)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
+  const c=['','var(--rd)','var(--am)','var(--am)','var(--gr)'];
+  const l=['','Weak','Fair','Good','Strong'];
+  [1,2,3,4].forEach(i=>{document.getElementById('s'+i).style.background=i<=s?c[s]:'var(--bd)';});
+  const lbl=document.getElementById('str-lbl');lbl.textContent=pw.length?l[s]:'';lbl.style.color=c[s]||'var(--t3)';
+}
+
+function doLogin(){
+  const email=document.getElementById('li-email').value.trim();
+  const pass=document.getElementById('li-pass').value;
+  if(!email||!pass){showErr('li','Please enter your email and password.');return;}
+  const users=getU();
+  const user=users.find(u=>u.email.toLowerCase()===email.toLowerCase()&&u.pass===pass);
+  if(!user){showErr('li','Incorrect email or password.');return;}
+  saveSes(user);enterDash(user);
+}
+
+function doSignup(){
+  const first=document.getElementById('su-first').value.trim();
+  const last=document.getElementById('su-last').value.trim();
+  const email=document.getElementById('su-email').value.trim();
+  const pass=document.getElementById('su-pass').value;
+  const conf=document.getElementById('su-conf').value;
+  if(!first||!last||!email||!pass){showErr('su','Please fill in all fields.');return;}
+  if(!/\S+@\S+\.\S+/.test(email)){showErr('su','Enter a valid email address.');return;}
+  if(pass.length<8){showErr('su','Password must be at least 8 characters.');return;}
+  if(pass!==conf){showErr('su','Passwords do not match.');return;}
+  const users=getU();
+  if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())){showErr('su','Account already exists with this email.');return;}
+  const user={id:Date.now(),first,last,email,pass,initials:(first[0]+last[0]).toUpperCase(),joined:new Date().toLocaleDateString()};
+  users.push(user);saveU(users);saveSes(user);
+  toast('Welcome, '+first+'! Account created.');enterDash(user);
+}
+
+function doForgot(){
+  const email=document.getElementById('fp-email').value.trim();
+  if(!email)return;
+  toast('Reset link sent to '+email+' (demo — connect Supabase for real emails)');
+  setTimeout(()=>showPage('pg-login'),2000);
+}
+
+function enterDash(user){
+  currentUser=user;sesCount=0;hist=[];
+  ['sb-av','tb-av','prof-big-av'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=user.initials||'U';});
+  document.getElementById('sb-name').textContent=user.first+' '+user.last;
+  document.getElementById('sb-email-disp').textContent=user.email;
+  document.getElementById('prof-name').textContent=user.first+' '+user.last;
+  document.getElementById('prof-email-disp').textContent=user.email;
+  document.getElementById('prof-joined').textContent='Joined '+(user.joined||'today');
+  document.getElementById('pf-first').value=user.first;
+  document.getElementById('pf-last').value=user.last;
+  document.getElementById('pf-email').value=user.email;
+  document.getElementById('st-count').textContent='0';
+  document.getElementById('prof-qr-count').textContent='0';
+  renderHist();showPage('pg-dash');
+  toast('Welcome back, '+user.first+'!');
+}
+
+function doLogout(){clearSes();currentUser=null;sesCount=0;hist=[];closeSidebar();showPage('pg-login');toast('Signed out.');}
+
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sb-overlay').classList.add('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-overlay').classList.remove('open');}
+
+function switchView(view){
+  ['generator','guide','profile','settings'].forEach(v=>{
+    const el=document.getElementById('view-'+v);if(el)el.classList.toggle('active',v===view);
+    const nav=document.getElementById('nav-'+v);if(nav)nav.classList.toggle('active',v===view);
+  });
+  const titles={generator:'QR Generator',guide:'Backend Guide',profile:'My Profile',settings:'Settings'};
+  document.getElementById('tb-title').textContent=titles[view]||'QRaft';
+  document.getElementById('tb-clear-btn').style.display=view==='generator'?'block':'none';
+  if(view==='profile')document.getElementById('prof-qr-count').textContent=sesCount;
+  if(window.innerWidth<=900)closeSidebar();
+}
+
+function setType(el,type){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  curType=type;
+  ['url','text','email','phone','sms','whatsapp','wifi','maps','calendar','vcard'].forEach(t=>{
+    document.getElementById('f-'+t).style.display=t===type?'block':'none';
+  });
+  resetPrev();liveGen();
+}
+
+function resetPrev(){
+  document.getElementById('qr-out').innerHTML='<div class="qr-ph"><div class="qr-ph-ico">&#x2B1B;</div><div class="qr-ph-txt">Fill in content<br>and hit Generate</div></div>';
+  document.getElementById('act-btns').style.display='none';
+  document.getElementById('cpybtn').style.display='none';
+  document.getElementById('meta-box').classList.remove('show');
+  document.getElementById('prev-badge').style.display='none';
+}
+
+function formatDT(dt){if(!dt)return'';return dt.replace('T','').replace(/-/g,'').replace(/:/g,'')+'00';}
+
+function buildPayload(){
+  switch(curType){
+    case 'url':return document.getElementById('url-i').value.trim()||null;
+    case 'text':return document.getElementById('txt-i').value.trim()||null;
+    case 'phone':{const p=document.getElementById('ph-i').value.trim();return p?'tel:'+p:null;}
+    case 'sms':{const n=document.getElementById('sms-num').value.trim();if(!n)return null;const m=document.getElementById('sms-msg').value.trim();return m?'SMSTO:'+n+':'+m:'sms:'+n;}
+    case 'whatsapp':{const n=document.getElementById('wa-num').value.trim().replace(/\D/g,'');if(!n)return null;const m=document.getElementById('wa-msg').value.trim();return m?'https://wa.me/'+n+'?text='+encodeURIComponent(m):'https://wa.me/'+n;}
+    case 'email':{const a=document.getElementById('em-a').value.trim();if(!a)return null;const s=document.getElementById('em-s').value.trim();const b=document.getElementById('em-b').value.trim();let u='mailto:'+a;const ps=[];if(s)ps.push('subject='+encodeURIComponent(s));if(b)ps.push('body='+encodeURIComponent(b));if(ps.length)u+='?'+ps.join('&');return u;}
+    case 'wifi':{const s=document.getElementById('wf-s').value.trim();if(!s)return null;const p=document.getElementById('wf-p').value;const t=document.getElementById('wf-t').value;return'WIFI:T:'+t+';S:'+s+';P:'+p+';;';}
+    case 'maps':{const lat=document.getElementById('mp-lat').value.trim();const lng=document.getElementById('mp-lng').value.trim();if(!lat||!lng)return null;return'https://maps.google.com/?q='+lat+','+lng;}
+    case 'calendar':{
+      const title=document.getElementById('cal-title').value.trim();if(!title)return null;
+      const start=formatDT(document.getElementById('cal-start').value);
+      const end=formatDT(document.getElementById('cal-end').value);
+      const loc=document.getElementById('cal-loc').value.trim();
+      const desc=document.getElementById('cal-desc').value.trim();
+      let v='BEGIN:VEVENT\nSUMMARY:'+title+'\n';
+      if(start)v+='DTSTART:'+start+'\n';if(end)v+='DTEND:'+end+'\n';
+      if(loc)v+='LOCATION:'+loc+'\n';if(desc)v+='DESCRIPTION:'+desc+'\n';
+      v+='END:VEVENT';return v;
+    }
+    case 'vcard':{const f=document.getElementById('vc-f').value.trim();const l=document.getElementById('vc-l').value.trim();if(!f&&!l)return null;const p=document.getElementById('vc-p').value.trim();const e=document.getElementById('vc-e').value.trim();const o=document.getElementById('vc-o').value.trim();let v='BEGIN:VCARD\nVERSION:3.0\nN:'+l+';'+f+';;;\nFN:'+f+' '+l+'\n';if(p)v+='TEL:'+p+'\n';if(e)v+='EMAIL:'+e+'\n';if(o)v+='ORG:'+o+'\n';v+='END:VCARD';return v;}
+  }return null;
+}
+
+function liveGen(){clearTimeout(liveGen._t);liveGen._t=setTimeout(()=>{const p=buildPayload();if(p&&p.length>2)genQR(true);},550);}
+
+function genQR(silent=false){
+  const payload=buildPayload();
+  if(!payload){if(!silent)toast('Please fill in the required field.','warn');return;}
+  const out=document.getElementById('qr-out');out.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.style.cssText='background:'+bgC+';padding:11px;border-radius:7px;display:inline-block';
+  out.appendChild(wrap);
+  try{
+    new QRCode(wrap,{text:payload,width:Math.min(curSz,210),height:Math.min(curSz,210),colorDark:fgC,colorLight:bgC,correctLevel:QRCode.CorrectLevel[curEC]||QRCode.CorrectLevel.H});
+  }catch(e){
+    out.innerHTML='<div class="qr-ph"><div class="qr-ph-ico" style="font-size:26px">&#x26A0;</div><div class="qr-ph-txt">Content too long.</div></div>';return;
+  }
+  if(!silent){sesCount++;document.getElementById('st-count').textContent=sesCount;addHist(payload,curType,wrap.innerHTML);toast('QR code generated!');}
+  document.getElementById('act-btns').style.display='grid';
+  document.getElementById('cpybtn').style.display='flex';
+  document.getElementById('meta-box').classList.add('show');
+  const b=document.getElementById('prev-badge');b.style.display='inline-flex';b.textContent=curType.toUpperCase();
+  document.getElementById('m-type').textContent=curType.toUpperCase();
+  document.getElementById('m-size').textContent=curSz+'x'+curSz+' px';
+  document.getElementById('m-ec').textContent={L:'Low (7%)',M:'Medium (15%)',H:'High (30%)'}[curEC];
+  document.getElementById('st-type').textContent=curType.toUpperCase();
+  document.getElementById('st-size').textContent=curSz;
+  document.getElementById('st-ec').textContent=curEC;
+}
+
+function addHist(payload,type,thumbHtml){
+  const label=payload.length>40?payload.slice(0,40)+'...':payload;
+  hist.unshift({label,type,thumb:thumbHtml,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
+  if(hist.length>8)hist.pop();renderHist();
+}
+
+function renderHist(){
+  const list=document.getElementById('hist-list');
+  document.getElementById('hist-cnt').textContent=hist.length+' item'+(hist.length!==1?'s':'');
+  if(!hist.length){list.innerHTML='<div class="empty-hist">No QR codes yet.<br>Generate one above!</div>';return;}
+  list.innerHTML=hist.map((h,i)=>'<div class="hist-item" onclick="restoreHist('+i+')">'+'<div class="hist-thumb">'+h.thumb+'</div>'+'<div class="hist-info"><div class="hist-lbl">'+esc(h.label)+'</div><div class="hist-meta">'+h.time+'</div></div>'+'<div class="hist-badge">'+h.type.toUpperCase()+'</div></div>').join('');
+  list.querySelectorAll('.hist-thumb canvas,.hist-thumb img').forEach(el=>{el.style.width='32px';el.style.height='32px';});
+}
+
+function restoreHist(i){
+  const h=hist[i];
+  document.getElementById('qr-out').innerHTML='<div style="background:'+bgC+';padding:11px;border-radius:7px;display:inline-block">'+h.thumb+'</div>';
+  document.getElementById('act-btns').style.display='grid';
+  document.getElementById('cpybtn').style.display='flex';
+  document.getElementById('meta-box').classList.add('show');
+  toast('Loaded from history');
+}
+
+function clearHist(){hist=[];renderHist();toast('History cleared.');}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function updCol(w,v){if(w==='fg'){fgC=v;document.getElementById('fgsw').style.background=v;document.getElementById('fghx').textContent=v;}else{bgC=v;document.getElementById('bgsw').style.background=v;document.getElementById('bghx').textContent=v;}liveGen();}
+function updSz(v){curSz=parseInt(v);document.getElementById('szv').textContent=v;document.getElementById('st-size').textContent=v;liveGen();}
+function setEC(el,l){document.querySelectorAll('.ecopt').forEach(o=>o.classList.remove('active'));el.classList.add('active');curEC=l;document.getElementById('st-ec').textContent=l;liveGen();}
+function getCanvas(){return document.querySelector('#qr-out canvas');}
+
+function dlQR(fmt){
+  const c=getCanvas();if(!c){toast('Generate a QR code first.','warn');return;}
+  if(fmt==='png'){const a=document.createElement('a');a.download='qrcode.png';a.href=c.toDataURL('image/png');a.click();toast('PNG downloaded!');}
+  else{
+    const sz=curSz;const ctx=c.getContext('2d');const d=ctx.getImageData(0,0,c.width,c.height);
+    let s='<svg xmlns="http://www.w3.org/2000/svg" width="'+sz+'" height="'+sz+'" viewBox="0 0 '+c.width+' '+c.height+'"><rect width="'+c.width+'" height="'+c.height+'" fill="'+bgC+'"/>';
+    for(let y=0;y<c.height;y++){for(let x=0;x<c.width;x++){const i=(y*c.width+x)*4;if(d.data[i]<128&&d.data[i+1]<128&&d.data[i+2]<128)s+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+fgC+'"/>';}}
+    s+='</svg>';const b=new Blob([s],{type:'image/svg+xml'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.download='qrcode.svg';a.href=u;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
+    toast('SVG downloaded!');
+  }
+}
+
+function cpyQR(){
+  const c=getCanvas();if(!c){toast('Generate a QR code first.','warn');return;}
+  c.toBlob(blob=>{
+    try{navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{
+      const b=document.getElementById('cpybtn');b.classList.add('ok');
+      b.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3.5 3.5L13 5"/></svg> Copied!';
+      setTimeout(()=>{b.classList.remove('ok');b.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V2h9"/></svg> Copy to clipboard';},2200);
+      toast('Copied to clipboard!');
+    });}catch(e){toast('Copy not supported in this browser.','warn');}
+  });
+}
+
+function clearAll(){
+  ['url-i','txt-i','em-a','em-s','em-b','ph-i','sms-num','sms-msg','wa-num','wa-msg','wf-s','wf-p','mp-lat','mp-lng','mp-lbl','cal-title','cal-start','cal-end','cal-loc','cal-desc','vc-f','vc-l','vc-p','vc-e','vc-o'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  resetPrev();toast('Cleared.');
+}
+
+function saveProfile(){
+  const first=document.getElementById('pf-first').value.trim();
+  const last=document.getElementById('pf-last').value.trim();
+  if(!first||!last){toast('Please enter your name.','warn');return;}
+  if(currentUser){
+    currentUser.first=first;currentUser.last=last;currentUser.initials=(first[0]+last[0]).toUpperCase();
+    const users=getU();const idx=users.findIndex(u=>u.id===currentUser.id);
+    if(idx>-1){users[idx]=currentUser;saveU(users);}saveSes(currentUser);
+    document.getElementById('sb-name').textContent=first+' '+last;
+    document.getElementById('prof-name').textContent=first+' '+last;
+    ['sb-av','tb-av','prof-big-av'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=currentUser.initials;});
+  }
+  toast('Profile saved successfully!');
+}
+
+function resetProfile(){
+  if(currentUser){document.getElementById('pf-first').value=currentUser.first;document.getElementById('pf-last').value=currentUser.last;}
+  toast('Reset to saved values.');
+}
+
+function changePassword(){
+  const cur=document.getElementById('pf-curpw').value;
+  const nw=document.getElementById('pf-newpw').value;
+  const conf=document.getElementById('pf-confpw').value;
+  if(!cur||!nw||!conf){toast('Please fill in all password fields.','warn');return;}
+  if(currentUser&&cur!==currentUser.pass){toast('Current password is incorrect.','warn');return;}
+  if(nw.length<8){toast('New password must be at least 8 characters.','warn');return;}
+  if(nw!==conf){toast('New passwords do not match.','warn');return;}
+  if(currentUser){
+    currentUser.pass=nw;const users=getU();const idx=users.findIndex(u=>u.id===currentUser.id);
+    if(idx>-1){users[idx]=currentUser;saveU(users);}saveSes(currentUser);
+  }
+  ['pf-curpw','pf-newpw','pf-confpw'].forEach(id=>{document.getElementById(id).value='';});
+  toast('Password updated successfully!');
+}
+
+function setSettingsTab(el,tabId){
+  document.querySelectorAll('.set-nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.settings-section').forEach(s=>s.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+}
+
+function setThemeOpt(el,theme){
+  document.querySelectorAll('.theme-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');
+  toast('Theme: '+theme+' (full theme switching requires a CSS refactor)');
+}
+
+function setAccent(el,color){
+  document.querySelectorAll('[onclick^="setAccent"]').forEach(d=>{d.style.border='2px solid transparent';d.style.boxShadow='none';});
+  el.style.border='2px solid white';el.style.boxShadow='0 0 0 2px '+color;
+  document.documentElement.style.setProperty('--ac',color);
+  toast('Accent colour updated!');
+}
+
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  document.getElementById('tdot').style.background=type==='warn'?'var(--am)':'var(--gr)';
+  document.getElementById('tmsg').textContent=msg;
+  t.classList.add('show');clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+(function init(){const s=getSes();if(s)enterDash(s);else showPage('pg-login');})();
+</script>
+</body>
+</html>
