@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>QRaft — QR Code Generator</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<!-- ✅ Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- ✅ QRCode Library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap');
@@ -321,13 +325,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
   <div class="auth-right">
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
       <div class="auth-form-title">Welcome back</div>
+      <div id="li-success" style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:var(--rs);padding:11px 13px;font-size:12.5px;color:var(--gr);margin-bottom:14px;display:none;line-height:1.5">&#x2705; Account created! Please check your email to confirm your account, then sign in.</div>
       <div class="auth-form-sub">No account? <a onclick="showPage('pg-signup')">Sign up free</a></div>
       <div class="form-field"><label class="form-label">Email address</label><input class="form-inp" id="li-email" type="email" placeholder="you@example.com" oninput="clearErr('li')"/><div class="err-msg" id="li-err">Incorrect email or password.</div></div>
       <div class="form-field"><label class="form-label">Password</label><div class="pw-wrap"><input class="form-inp" id="li-pass" type="password" placeholder="Your password" oninput="clearErr('li')"/><button class="pw-toggle" onclick="togglePw('li-pass',this)" type="button"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg></button></div></div>
       <div class="remember-row"><label class="check-wrap"><input type="checkbox" id="li-rem"/><span class="check-label">Remember me</span></label><a class="forgot-link" onclick="showPage('pg-forgot')">Forgot password?</a></div>
-      <button class="btn-auth" onclick="doLogin()">Sign in</button>
+      <button class="btn-auth" id="li-btn" onclick="doLogin()">Sign in</button>
       <div class="divider-or">or</div>
-      <button class="btn-google" onclick="toast('Connect Supabase to enable Google OAuth — see the Backend Guide.','warn')">
+      <button class="btn-google" onclick="doGoogle()">
         <svg width="14" height="14" viewBox="0 0 16 16"><path fill="#4285F4" d="M14.9 8.16c0-.52-.04-1.02-.13-1.5H8v2.84h3.87a3.31 3.31 0 01-1.44 2.17v1.8h2.33c1.36-1.25 2.14-3.1 2.14-5.31z"/><path fill="#34A853" d="M8 15c1.95 0 3.58-.65 4.77-1.75l-2.33-1.8c-.65.43-1.47.69-2.44.69-1.88 0-3.47-1.27-4.03-2.97H1.57v1.85A7 7 0 008 15z"/><path fill="#FBBC05" d="M3.97 9.17A4.21 4.21 0 013.75 8c0-.41.07-.81.22-1.17V4.98H1.57A7 7 0 001 8c0 1.13.27 2.2.57 3.02l2.4-1.85z"/><path fill="#EA4335" d="M8 3.86c1.06 0 2.01.36 2.76 1.08l2.07-2.07A7 7 0 008 1a7 7 0 00-6.43 3.98l2.4 1.85C4.53 5.13 6.12 3.86 8 3.86z"/></svg>
         Continue with Google
       </button>
@@ -364,9 +369,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
       <div class="form-field"><label class="form-label">Email address</label><input class="form-inp" id="su-email" type="email" placeholder="you@example.com" oninput="clearErr('su')"/><div class="err-msg" id="su-err">Please fill all fields correctly.</div></div>
       <div class="form-field"><label class="form-label">Password</label><div class="pw-wrap"><input class="form-inp" id="su-pass" type="password" placeholder="Min 8 characters" oninput="checkStr(this.value);clearErr('su')"/><button class="pw-toggle" onclick="togglePw('su-pass',this)" type="button"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg></button></div><div class="str-bar" id="str-bar"><div class="str-seg" id="s1"></div><div class="str-seg" id="s2"></div><div class="str-seg" id="s3"></div><div class="str-seg" id="s4"></div></div><div class="str-lbl" id="str-lbl"></div></div>
       <div class="form-field"><label class="form-label">Confirm password</label><input class="form-inp" id="su-conf" type="password" placeholder="Repeat password" oninput="clearErr('su')"/></div>
-      <button class="btn-auth" onclick="doSignup()">Create account</button>
+      <button class="btn-auth" id="su-btn" onclick="doSignup()">Create account</button>
       <div class="divider-or">or</div>
-      <button class="btn-google" onclick="toast('Connect Supabase for Google OAuth — see the Backend Guide.','warn')"><svg width="14" height="14" viewBox="0 0 16 16"><path fill="#4285F4" d="M14.9 8.16c0-.52-.04-1.02-.13-1.5H8v2.84h3.87a3.31 3.31 0 01-1.44 2.17v1.8h2.33c1.36-1.25 2.14-3.1 2.14-5.31z"/><path fill="#34A853" d="M8 15c1.95 0 3.58-.65 4.77-1.75l-2.33-1.8c-.65.43-1.47.69-2.44.69-1.88 0-3.47-1.27-4.03-2.97H1.57v1.85A7 7 0 008 15z"/><path fill="#FBBC05" d="M3.97 9.17A4.21 4.21 0 013.75 8c0-.41.07-.81.22-1.17V4.98H1.57A7 7 0 001 8c0 1.13.27 2.2.57 3.02l2.4-1.85z"/><path fill="#EA4335" d="M8 3.86c1.06 0 2.01.36 2.76 1.08l2.07-2.07A7 7 0 008 1a7 7 0 00-6.43 3.98l2.4 1.85C4.53 5.13 6.12 3.86 8 3.86z"/></svg>Continue with Google</button>
+      <button class="btn-google" onclick="doGoogle()"><svg width="14" height="14" viewBox="0 0 16 16"><path fill="#4285F4" d="M14.9 8.16c0-.52-.04-1.02-.13-1.5H8v2.84h3.87a3.31 3.31 0 01-1.44 2.17v1.8h2.33c1.36-1.25 2.14-3.1 2.14-5.31z"/><path fill="#34A853" d="M8 15c1.95 0 3.58-.65 4.77-1.75l-2.33-1.8c-.65.43-1.47.69-2.44.69-1.88 0-3.47-1.27-4.03-2.97H1.57v1.85A7 7 0 008 15z"/><path fill="#FBBC05" d="M3.97 9.17A4.21 4.21 0 013.75 8c0-.41.07-.81.22-1.17V4.98H1.57A7 7 0 001 8c0 1.13.27 2.2.57 3.02l2.4-1.85z"/><path fill="#EA4335" d="M8 3.86c1.06 0 2.01.36 2.76 1.08l2.07-2.07A7 7 0 008 1a7 7 0 00-6.43 3.98l2.4 1.85C4.53 5.13 6.12 3.86 8 3.86z"/></svg>Continue with Google</button>
     </div>
   </div>
 </div>
@@ -383,9 +388,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
   <div class="auth-right">
     <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
       <div class="auth-form-title">Forgot password?</div>
+      <div id="fp-success" style="background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.25);border-radius:var(--rs);padding:11px 13px;font-size:12.5px;color:var(--gr);margin-bottom:14px;display:none;line-height:1.5">&#x2705; Reset email sent! Check your inbox and follow the link.</div>
       <div class="auth-form-sub">Remember it? <a onclick="showPage('pg-login')">Back to login</a></div>
       <div class="form-field"><label class="form-label">Email address</label><input class="form-inp" id="fp-email" type="email" placeholder="you@example.com"/></div>
-      <button class="btn-auth" onclick="doForgot()">Send reset link</button>
+      <button class="btn-auth" id="fp-btn" onclick="doForgot()">Send reset link</button>
     </div>
   </div>
 </div>
@@ -440,7 +446,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
         <div class="workspace">
           <div>
             <div class="card">
-              <div class="card-hd"><span class="card-title">QR Builder</span><span class="chip chip-p">10 types</span></div>
+              <div class="card-hd"><span class="card-title">QR Builder</span><span class="chip chip-g">&#x25CF; Supabase Live</span></div>
               <div class="card-bd">
                 <div class="tabs">
                   <div class="tab active" onclick="setType(this,'url')">URL</div>
@@ -633,9 +639,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
             </div>
             <div class="section-card">
               <div class="section-title"><div class="section-title-dot" style="background:var(--am)"></div>Change Password</div>
-              <div class="inp-group"><label class="inp-lbl">Current password</label><input class="inp-field" type="password" id="pf-curpw" placeholder="Current password"/></div>
-              <div class="inp-row"><div class="inp-group"><label class="inp-lbl">New password</label><input class="inp-field" type="password" id="pf-newpw" placeholder="New password"/></div><div class="inp-group"><label class="inp-lbl">Confirm new</label><input class="inp-field" type="password" id="pf-confpw" placeholder="Confirm"/></div></div>
-              <div class="btn-row"><button class="btn-save" onclick="changePassword()">Update password</button></div>
+              <div style="font-size:12.5px;color:var(--t2);margin-bottom:12px;line-height:1.6;background:var(--s2);padding:10px 12px;border-radius:var(--rs);border:1px solid var(--bd)">&#x1F512; Password changes are handled securely by Supabase. A reset email will be sent to your inbox.</div>
+              <div class="btn-row"><button class="btn-save" onclick="sendPasswordReset()">Send password reset email</button></div>
             </div>
           </div>
         </div>
@@ -705,7 +710,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
                 <div class="danger-title">⚠️ Danger Zone</div>
                 <div class="danger-row" style="margin-bottom:12px"><div class="danger-desc"><strong style="color:var(--tx)">Clear all history</strong><br>Permanently delete your QR generation history from this session.</div><button class="btn-danger" onclick="clearHist()">Clear history</button></div>
                 <div style="height:1px;background:rgba(248,113,113,.15);margin:12px 0"></div>
-                <div class="danger-row"><div class="danger-desc"><strong style="color:var(--tx)">Delete account</strong><br>Permanently remove your account and all associated data. This cannot be undone.</div><button class="btn-danger" onclick="toast('Account deletion requires Supabase — see the Backend Guide.','warn')">Delete account</button></div>
+                <div class="danger-row"><div class="danger-desc"><strong style="color:var(--tx)">Delete account</strong><br>Permanently remove your account and all associated data. This cannot be undone.</div><button class="btn-danger" onclick="deleteAccount()">Delete account</button></div>
               </div>
             </div>
           </div>
@@ -720,175 +725,261 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
 <div class="toast" id="toast"><div class="tdot" id="tdot"></div><span id="tmsg">Done!</span></div>
 
 <script>
-const DB='qraft_u3',SK='qraft_s3';
-let curType='url',curEC='H',curSz=300,fgC='#000000',bgC='#ffffff';
-let sesCount=0,hist=[],currentUser=null;
+// ══════════════════════════════════════════
+//  ✅ SUPABASE CONFIGURATION
+// ══════════════════════════════════════════
+const SUPABASE_URL = 'https://hzhaxxfpotmkmyzbrjir.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_b4vTTVpgasUYzgnUyAyviA_rJbYj1hd';
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-document.getElementById('fgsw').style.background=fgC;
-document.getElementById('bgsw').style.background=bgC;
+// ── STATE ──
+let curType='url', curEC='H', curSz=300, fgC='#000000', bgC='#ffffff';
+let sesCount=0, hist=[], currentUser=null;
 
-function getU(){try{return JSON.parse(localStorage.getItem(DB)||'[]')}catch(e){return[]}}
-function saveU(u){localStorage.setItem(DB,JSON.stringify(u))}
-function getSes(){try{return JSON.parse(localStorage.getItem(SK)||'null')}catch(e){return null}}
-function saveSes(u){localStorage.setItem(SK,JSON.stringify(u))}
-function clearSes(){localStorage.removeItem(SK)}
+document.getElementById('fgsw').style.background = fgC;
+document.getElementById('bgsw').style.background = bgC;
 
-function showPage(id){
-  ['pg-login','pg-signup','pg-forgot','pg-dash'].forEach(p=>{
-    const el=document.getElementById(p);
-    if(el)el.style.display=p===id?'flex':'none';
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.style.opacity = loading ? '0.6' : '1';
+}
+
+function showPage(id) {
+  ['pg-login','pg-signup','pg-forgot','pg-dash'].forEach(p => {
+    const el = document.getElementById(p);
+    if (el) el.style.display = p === id ? 'flex' : 'none';
   });
 }
 
-function clearErr(p){const e=document.getElementById(p+'-err');if(e)e.classList.remove('show');}
-function showErr(p,msg){const e=document.getElementById(p+'-err');if(e){e.textContent=msg;e.classList.add('show');}}
-
-function togglePw(id,btn){
-  const inp=document.getElementById(id);const show=inp.type==='password';inp.type=show?'text':'password';
-  btn.innerHTML=show
-    ?'<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2l12 12M6.5 6.7A2.5 2.5 0 019.3 9.5M4.3 4.5C3 5.4 2 6.7 1 8s2.5 5 7 5c1.3 0 2.5-.3 3.5-.8M7 3.1C7.3 3 7.7 3 8 3c4.5 0 7 5 7 5s-.6 1.1-1.7 2.2"/></svg>'
-    :'<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>';
+function clearErr(p) {
+  const e = document.getElementById(p + '-err');
+  if (e) e.classList.remove('show');
 }
 
-function checkStr(pw){
-  let s=0;if(pw.length>=8)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;
-  const c=['','var(--rd)','var(--am)','var(--am)','var(--gr)'];
-  const l=['','Weak','Fair','Good','Strong'];
-  [1,2,3,4].forEach(i=>{document.getElementById('s'+i).style.background=i<=s?c[s]:'var(--bd)';});
-  const lbl=document.getElementById('str-lbl');lbl.textContent=pw.length?l[s]:'';lbl.style.color=c[s]||'var(--t3)';
+function showErr(p, msg) {
+  const e = document.getElementById(p + '-err');
+  if (e) { e.textContent = msg; e.classList.add('show'); }
 }
 
-function doLogin(){
-  const email=document.getElementById('li-email').value.trim();
-  const pass=document.getElementById('li-pass').value;
-  if(!email||!pass){showErr('li','Please enter your email and password.');return;}
-  const users=getU();
-  const user=users.find(u=>u.email.toLowerCase()===email.toLowerCase()&&u.pass===pass);
-  if(!user){showErr('li','Incorrect email or password.');return;}
-  saveSes(user);enterDash(user);
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  btn.innerHTML = show
+    ? '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 2l12 12M6.5 6.7A2.5 2.5 0 019.3 9.5"/></svg>'
+    : '<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2.5"/></svg>';
 }
 
-function doSignup(){
-  const first=document.getElementById('su-first').value.trim();
-  const last=document.getElementById('su-last').value.trim();
-  const email=document.getElementById('su-email').value.trim();
-  const pass=document.getElementById('su-pass').value;
-  const conf=document.getElementById('su-conf').value;
-  if(!first||!last||!email||!pass){showErr('su','Please fill in all fields.');return;}
-  if(!/\S+@\S+\.\S+/.test(email)){showErr('su','Enter a valid email address.');return;}
-  if(pass.length<8){showErr('su','Password must be at least 8 characters.');return;}
-  if(pass!==conf){showErr('su','Passwords do not match.');return;}
-  const users=getU();
-  if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())){showErr('su','Account already exists with this email.');return;}
-  const user={id:Date.now(),first,last,email,pass,initials:(first[0]+last[0]).toUpperCase(),joined:new Date().toLocaleDateString()};
-  users.push(user);saveU(users);saveSes(user);
-  toast('Welcome, '+first+'! Account created.');enterDash(user);
+function checkStr(pw) {
+  let s = 0;
+  if (pw.length >= 8) s++;
+  if (/[A-Z]/.test(pw)) s++;
+  if (/[0-9]/.test(pw)) s++;
+  if (/[^A-Za-z0-9]/.test(pw)) s++;
+  const c = ['','var(--rd)','var(--am)','var(--am)','var(--gr)'];
+  const l = ['','Weak','Fair','Good','Strong'];
+  [1,2,3,4].forEach(i => { document.getElementById('s'+i).style.background = i <= s ? c[s] : 'var(--bd)'; });
+  const lbl = document.getElementById('str-lbl');
+  lbl.textContent = pw.length ? l[s] : '';
+  lbl.style.color = c[s] || 'var(--t3)';
 }
 
-function doForgot(){
-  const email=document.getElementById('fp-email').value.trim();
-  if(!email)return;
-  toast('Reset link sent to '+email+' (demo — connect Supabase for real emails)');
-  setTimeout(()=>showPage('pg-login'),2000);
+// ══════════════════════════════════════════
+//  ✅ SUPABASE AUTH
+// ══════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('li-email').value.trim();
+  const pass  = document.getElementById('li-pass').value;
+  if (!email || !pass) { showErr('li', 'Please enter your email and password.'); return; }
+  setLoading('li-btn', true);
+  const { data, error } = await _supabase.auth.signInWithPassword({ email, password: pass });
+  setLoading('li-btn', false);
+  if (error) { showErr('li', error.message || 'Incorrect email or password.'); return; }
+  enterDash(data.user);
 }
 
-function enterDash(user){
-  currentUser=user;sesCount=0;hist=[];
-  ['sb-av','tb-av','prof-big-av'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=user.initials||'U';});
-  document.getElementById('sb-name').textContent=user.first+' '+user.last;
-  document.getElementById('sb-email-disp').textContent=user.email;
-  document.getElementById('prof-name').textContent=user.first+' '+user.last;
-  document.getElementById('prof-email-disp').textContent=user.email;
-  document.getElementById('prof-joined').textContent='Joined '+(user.joined||'today');
-  document.getElementById('pf-first').value=user.first;
-  document.getElementById('pf-last').value=user.last;
-  document.getElementById('pf-email').value=user.email;
-  document.getElementById('st-count').textContent='0';
-  document.getElementById('prof-qr-count').textContent='0';
-  renderHist();showPage('pg-dash');
-  toast('Welcome back, '+user.first+'!');
-}
-
-function doLogout(){clearSes();currentUser=null;sesCount=0;hist=[];closeSidebar();showPage('pg-login');toast('Signed out.');}
-
-function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sb-overlay').classList.add('open');}
-function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sb-overlay').classList.remove('open');}
-
-function switchView(view){
-  ['generator','guide','profile','settings'].forEach(v=>{
-    const el=document.getElementById('view-'+v);if(el)el.classList.toggle('active',v===view);
-    const nav=document.getElementById('nav-'+v);if(nav)nav.classList.toggle('active',v===view);
+async function doSignup() {
+  const first = document.getElementById('su-first').value.trim();
+  const last  = document.getElementById('su-last').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pass  = document.getElementById('su-pass').value;
+  const conf  = document.getElementById('su-conf').value;
+  if (!first || !last || !email || !pass) { showErr('su', 'Please fill in all fields.'); return; }
+  if (!/\S+@\S+\.\S+/.test(email)) { showErr('su', 'Enter a valid email address.'); return; }
+  if (pass.length < 8) { showErr('su', 'Password must be at least 8 characters.'); return; }
+  if (pass !== conf)   { showErr('su', 'Passwords do not match.'); return; }
+  setLoading('su-btn', true);
+  const { data, error } = await _supabase.auth.signUp({
+    email, password: pass,
+    options: { data: { first_name: first, last_name: last }, emailRedirectTo: window.location.origin }
   });
-  const titles={generator:'QR Generator',guide:'Backend Guide',profile:'My Profile',settings:'Settings'};
-  document.getElementById('tb-title').textContent=titles[view]||'QRaft';
-  document.getElementById('tb-clear-btn').style.display=view==='generator'?'block':'none';
-  if(view==='profile')document.getElementById('prof-qr-count').textContent=sesCount;
-  if(window.innerWidth<=900)closeSidebar();
+  setLoading('su-btn', false);
+  if (error) { showErr('su', error.message); return; }
+  showPage('pg-login');
+  const s = document.getElementById('li-success');
+  if (s) s.classList.add('show');
+  toast('Account created! Check your email to confirm.', 'success');
 }
 
-function setType(el,type){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
-  curType=type;
-  ['url','text','email','phone','sms','whatsapp','wifi','maps','calendar','vcard'].forEach(t=>{
-    document.getElementById('f-'+t).style.display=t===type?'block':'none';
+async function doGoogle() {
+  const { error } = await _supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
   });
-  resetPrev();liveGen();
+  if (error) toast('Google sign-in failed: ' + error.message, 'warn');
 }
 
-function resetPrev(){
-  document.getElementById('qr-out').innerHTML='<div class="qr-ph"><div class="qr-ph-ico">&#x2B1B;</div><div class="qr-ph-txt">Fill in content<br>and hit Generate</div></div>';
-  document.getElementById('act-btns').style.display='none';
-  document.getElementById('cpybtn').style.display='none';
-  document.getElementById('meta-box').classList.remove('show');
-  document.getElementById('prev-badge').style.display='none';
+async function doForgot() {
+  const email = document.getElementById('fp-email').value.trim();
+  if (!email) { toast('Please enter your email.', 'warn'); return; }
+  setLoading('fp-btn', true);
+  const { error } = await _supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin
+  });
+  setLoading('fp-btn', false);
+  if (error) { toast(error.message, 'warn'); return; }
+  const s = document.getElementById('fp-success');
+  if (s) s.classList.add('show');
+  toast('Reset email sent! Check your inbox.');
 }
 
-function formatDT(dt){if(!dt)return'';return dt.replace('T','').replace(/-/g,'').replace(/:/g,'')+'00';}
-
-function buildPayload(){
-  switch(curType){
-    case 'url':return document.getElementById('url-i').value.trim()||null;
-    case 'text':return document.getElementById('txt-i').value.trim()||null;
-    case 'phone':{const p=document.getElementById('ph-i').value.trim();return p?'tel:'+p:null;}
-    case 'sms':{const n=document.getElementById('sms-num').value.trim();if(!n)return null;const m=document.getElementById('sms-msg').value.trim();return m?'SMSTO:'+n+':'+m:'sms:'+n;}
-    case 'whatsapp':{const n=document.getElementById('wa-num').value.trim().replace(/\D/g,'');if(!n)return null;const m=document.getElementById('wa-msg').value.trim();return m?'https://wa.me/'+n+'?text='+encodeURIComponent(m):'https://wa.me/'+n;}
-    case 'email':{const a=document.getElementById('em-a').value.trim();if(!a)return null;const s=document.getElementById('em-s').value.trim();const b=document.getElementById('em-b').value.trim();let u='mailto:'+a;const ps=[];if(s)ps.push('subject='+encodeURIComponent(s));if(b)ps.push('body='+encodeURIComponent(b));if(ps.length)u+='?'+ps.join('&');return u;}
-    case 'wifi':{const s=document.getElementById('wf-s').value.trim();if(!s)return null;const p=document.getElementById('wf-p').value;const t=document.getElementById('wf-t').value;return'WIFI:T:'+t+';S:'+s+';P:'+p+';;';}
-    case 'maps':{const lat=document.getElementById('mp-lat').value.trim();const lng=document.getElementById('mp-lng').value.trim();if(!lat||!lng)return null;return'https://maps.google.com/?q='+lat+','+lng;}
-    case 'calendar':{
-      const title=document.getElementById('cal-title').value.trim();if(!title)return null;
-      const start=formatDT(document.getElementById('cal-start').value);
-      const end=formatDT(document.getElementById('cal-end').value);
-      const loc=document.getElementById('cal-loc').value.trim();
-      const desc=document.getElementById('cal-desc').value.trim();
-      let v='BEGIN:VEVENT\nSUMMARY:'+title+'\n';
-      if(start)v+='DTSTART:'+start+'\n';if(end)v+='DTEND:'+end+'\n';
-      if(loc)v+='LOCATION:'+loc+'\n';if(desc)v+='DESCRIPTION:'+desc+'\n';
-      v+='END:VEVENT';return v;
-    }
-    case 'vcard':{const f=document.getElementById('vc-f').value.trim();const l=document.getElementById('vc-l').value.trim();if(!f&&!l)return null;const p=document.getElementById('vc-p').value.trim();const e=document.getElementById('vc-e').value.trim();const o=document.getElementById('vc-o').value.trim();let v='BEGIN:VCARD\nVERSION:3.0\nN:'+l+';'+f+';;;\nFN:'+f+' '+l+'\n';if(p)v+='TEL:'+p+'\n';if(e)v+='EMAIL:'+e+'\n';if(o)v+='ORG:'+o+'\n';v+='END:VCARD';return v;}
-  }return null;
+async function doLogout() {
+  await _supabase.auth.signOut();
+  currentUser = null; sesCount = 0; hist = [];
+  closeSidebar(); showPage('pg-login');
+  toast('Signed out successfully.');
 }
 
-function liveGen(){clearTimeout(liveGen._t);liveGen._t=setTimeout(()=>{const p=buildPayload();if(p&&p.length>2)genQR(true);},550);}
+async function sendPasswordReset() {
+  if (!currentUser) return;
+  const { error } = await _supabase.auth.resetPasswordForEmail(currentUser.email, { redirectTo: window.location.origin });
+  if (error) { toast('Error: ' + error.message, 'warn'); return; }
+  toast('Password reset email sent to ' + currentUser.email);
+}
 
-function genQR(silent=false){
-  const payload=buildPayload();
-  if(!payload){if(!silent)toast('Please fill in the required field.','warn');return;}
-  const out=document.getElementById('qr-out');out.innerHTML='';
-  const wrap=document.createElement('div');
-  wrap.style.cssText='background:'+bgC+';padding:11px;border-radius:7px;display:inline-block';
-  out.appendChild(wrap);
-  try{
-    new QRCode(wrap,{text:payload,width:Math.min(curSz,210),height:Math.min(curSz,210),colorDark:fgC,colorLight:bgC,correctLevel:QRCode.CorrectLevel[curEC]||QRCode.CorrectLevel.H});
-  }catch(e){
-    out.innerHTML='<div class="qr-ph"><div class="qr-ph-ico" style="font-size:26px">&#x26A0;</div><div class="qr-ph-txt">Content too long.</div></div>';return;
+async function saveProfile() {
+  const first = document.getElementById('pf-first').value.trim();
+  const last  = document.getElementById('pf-last').value.trim();
+  if (!first || !last) { toast('Please enter your name.', 'warn'); return; }
+  const { error } = await _supabase.auth.updateUser({ data: { first_name: first, last_name: last } });
+  if (error) { toast('Error: ' + error.message, 'warn'); return; }
+  const initials = (first[0] + last[0]).toUpperCase();
+  ['sb-av','tb-av','prof-big-av'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initials; });
+  document.getElementById('sb-name').textContent   = first + ' ' + last;
+  document.getElementById('prof-name').textContent = first + ' ' + last;
+  if (currentUser) { currentUser._first = first; currentUser._last = last; }
+  toast('Profile saved successfully!');
+}
+
+function resetProfile() {
+  if (currentUser) {
+    document.getElementById('pf-first').value = currentUser._first || '';
+    document.getElementById('pf-last').value  = currentUser._last  || '';
   }
-  if(!silent){sesCount++;document.getElementById('st-count').textContent=sesCount;addHist(payload,curType,wrap.innerHTML);toast('QR code generated!');}
+  toast('Reset to saved values.');
+}
+
+async function deleteAccount() {
+  if (!confirm('This permanently deletes your account. Cannot be undone.')) return;
+  toast('Account deletion requires a Supabase Edge Function. See Supabase docs for admin delete.', 'warn');
+}
+
+// ── ENTER DASHBOARD ──
+function enterDash(user) {
+  currentUser = user;
+  sesCount = 0; hist = [];
+  const meta     = user.user_metadata || {};
+  const first    = meta.first_name || (meta.full_name||'').split(' ')[0] || 'User';
+  const last     = meta.last_name  || (meta.full_name||'').split(' ')[1] || '';
+  const initials = (first[0] + (last[0]||'')).toUpperCase();
+  const email    = user.email || '';
+  const joined   = new Date(user.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  currentUser._first = first; currentUser._last = last;
+  ['sb-av','tb-av','prof-big-av'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = initials; });
+  document.getElementById('sb-name').textContent         = first + ' ' + last;
+  document.getElementById('sb-email-disp').textContent   = email;
+  document.getElementById('prof-name').textContent       = first + ' ' + last;
+  document.getElementById('prof-email-disp').textContent = email;
+  document.getElementById('prof-joined').textContent     = 'Joined ' + joined;
+  document.getElementById('pf-first').value              = first;
+  document.getElementById('pf-last').value               = last;
+  document.getElementById('pf-email').value              = email;
+  document.getElementById('st-count').textContent        = '0';
+  document.getElementById('prof-qr-count').textContent   = '0';
+  renderHist(); showPage('pg-dash');
+  toast('Welcome back, ' + first + '!');
+}
+
+// ── NAVIGATION ──
+function openSidebar()  { document.getElementById('sidebar').classList.add('open'); document.getElementById('sb-overlay').classList.add('open'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sb-overlay').classList.remove('open'); }
+
+function switchView(view) {
+  ['generator','profile','settings'].forEach(v => {
+    const el  = document.getElementById('view-' + v); if (el) el.classList.toggle('active', v === view);
+    const nav = document.getElementById('nav-' + v);  if (nav) nav.classList.toggle('active', v === view);
+  });
+  const titles = { generator:'QR Generator', profile:'My Profile', settings:'Settings' };
+  document.getElementById('tb-title').textContent = titles[view] || 'QRaft';
+  document.getElementById('tb-clear-btn').style.display = view === 'generator' ? 'block' : 'none';
+  if (view === 'profile') document.getElementById('prof-qr-count').textContent = sesCount;
+  if (window.innerWidth <= 900) closeSidebar();
+}
+
+// ── QR GENERATOR ──
+function setType(el, type) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active')); el.classList.add('active');
+  curType = type;
+  ['url','text','email','phone','sms','whatsapp','wifi','maps','calendar','vcard'].forEach(t => {
+    document.getElementById('f-'+t).style.display = t === type ? 'block' : 'none';
+  });
+  resetPrev(); liveGen();
+}
+
+function resetPrev() {
+  document.getElementById('qr-out').innerHTML = '<div class="qr-ph"><div class="qr-ph-ico">&#x2B1B;</div><div class="qr-ph-txt">Fill in content<br>and hit Generate</div></div>';
+  document.getElementById('act-btns').style.display = 'none';
+  document.getElementById('cpybtn').style.display   = 'none';
+  document.getElementById('meta-box').classList.remove('show');
+  document.getElementById('prev-badge').style.display = 'none';
+}
+
+function formatDT(dt) { if (!dt) return ''; return dt.replace('T','').replace(/-/g,'').replace(/:/g,'') + '00'; }
+
+function buildPayload() {
+  switch (curType) {
+    case 'url':  return document.getElementById('url-i').value.trim() || null;
+    case 'text': return document.getElementById('txt-i').value.trim() || null;
+    case 'phone': { const p = document.getElementById('ph-i').value.trim(); return p ? 'tel:' + p : null; }
+    case 'sms': { const n = document.getElementById('sms-num').value.trim(); if (!n) return null; const m = document.getElementById('sms-msg').value.trim(); return m ? 'SMSTO:' + n + ':' + m : 'sms:' + n; }
+    case 'whatsapp': { const n = document.getElementById('wa-num').value.trim().replace(/\D/g,''); if (!n) return null; const m = document.getElementById('wa-msg').value.trim(); return m ? 'https://wa.me/'+n+'?text='+encodeURIComponent(m) : 'https://wa.me/'+n; }
+    case 'email': { const a = document.getElementById('em-a').value.trim(); if (!a) return null; const s = document.getElementById('em-s').value.trim(); const b = document.getElementById('em-b').value.trim(); let u = 'mailto:'+a; const ps=[]; if(s) ps.push('subject='+encodeURIComponent(s)); if(b) ps.push('body='+encodeURIComponent(b)); if(ps.length) u+='?'+ps.join('&'); return u; }
+    case 'wifi': { const s = document.getElementById('wf-s').value.trim(); if (!s) return null; return 'WIFI:T:'+document.getElementById('wf-t').value+';S:'+s+';P:'+document.getElementById('wf-p').value+';;'; }
+    case 'maps': { const lat = document.getElementById('mp-lat').value.trim(); const lng = document.getElementById('mp-lng').value.trim(); if (!lat||!lng) return null; return 'https://maps.google.com/?q='+lat+','+lng; }
+    case 'calendar': { const title = document.getElementById('cal-title').value.trim(); if (!title) return null; const start=formatDT(document.getElementById('cal-start').value); const end=formatDT(document.getElementById('cal-end').value); const loc=document.getElementById('cal-loc').value.trim(); const desc=document.getElementById('cal-desc').value.trim(); let v='BEGIN:VEVENT\nSUMMARY:'+title+'\n'; if(start) v+='DTSTART:'+start+'\n'; if(end) v+='DTEND:'+end+'\n'; if(loc) v+='LOCATION:'+loc+'\n'; if(desc) v+='DESCRIPTION:'+desc+'\n'; return v+'END:VEVENT'; }
+    case 'vcard': { const f=document.getElementById('vc-f').value.trim(); const l=document.getElementById('vc-l').value.trim(); if(!f&&!l) return null; const p=document.getElementById('vc-p').value.trim(); const e=document.getElementById('vc-e').value.trim(); const o=document.getElementById('vc-o').value.trim(); let v='BEGIN:VCARD\nVERSION:3.0\nN:'+l+';'+f+';;;\nFN:'+f+' '+l+'\n'; if(p) v+='TEL:'+p+'\n'; if(e) v+='EMAIL:'+e+'\n'; if(o) v+='ORG:'+o+'\n'; return v+'END:VCARD'; }
+  }
+  return null;
+}
+
+function liveGen() { clearTimeout(liveGen._t); liveGen._t = setTimeout(() => { const p = buildPayload(); if (p && p.length > 2) genQR(true); }, 550); }
+
+function genQR(silent = false) {
+  const payload = buildPayload();
+  if (!payload) { if (!silent) toast('Please fill in the required field.', 'warn'); return; }
+  const out = document.getElementById('qr-out'); out.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'background:'+bgC+';padding:11px;border-radius:7px;display:inline-block';
+  out.appendChild(wrap);
+  try { new QRCode(wrap, { text:payload, width:Math.min(curSz,210), height:Math.min(curSz,210), colorDark:fgC, colorLight:bgC, correctLevel:QRCode.CorrectLevel[curEC]||QRCode.CorrectLevel.H }); }
+  catch(e) { out.innerHTML='<div class="qr-ph"><div class="qr-ph-ico">&#x26A0;</div><div class="qr-ph-txt">Content too long.</div></div>'; return; }
+  if (!silent) { sesCount++; document.getElementById('st-count').textContent=sesCount; addHist(payload,curType,wrap.innerHTML); toast('QR code generated!'); }
   document.getElementById('act-btns').style.display='grid';
   document.getElementById('cpybtn').style.display='flex';
   document.getElementById('meta-box').classList.add('show');
-  const b=document.getElementById('prev-badge');b.style.display='inline-flex';b.textContent=curType.toUpperCase();
+  const b=document.getElementById('prev-badge'); b.style.display='inline-flex'; b.textContent=curType.toUpperCase();
   document.getElementById('m-type').textContent=curType.toUpperCase();
   document.getElementById('m-size').textContent=curSz+'x'+curSz+' px';
   document.getElementById('m-ec').textContent={L:'Low (7%)',M:'Medium (15%)',H:'High (30%)'}[curEC];
@@ -897,13 +988,13 @@ function genQR(silent=false){
   document.getElementById('st-ec').textContent=curEC;
 }
 
-function addHist(payload,type,thumbHtml){
+function addHist(payload,type,thumbHtml) {
   const label=payload.length>40?payload.slice(0,40)+'...':payload;
   hist.unshift({label,type,thumb:thumbHtml,time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})});
-  if(hist.length>8)hist.pop();renderHist();
+  if(hist.length>8) hist.pop(); renderHist();
 }
 
-function renderHist(){
+function renderHist() {
   const list=document.getElementById('hist-list');
   document.getElementById('hist-cnt').textContent=hist.length+' item'+(hist.length!==1?'s':'');
   if(!hist.length){list.innerHTML='<div class="empty-hist">No QR codes yet.<br>Generate one above!</div>';return;}
@@ -911,7 +1002,7 @@ function renderHist(){
   list.querySelectorAll('.hist-thumb canvas,.hist-thumb img').forEach(el=>{el.style.width='32px';el.style.height='32px';});
 }
 
-function restoreHist(i){
+function restoreHist(i) {
   const h=hist[i];
   document.getElementById('qr-out').innerHTML='<div style="background:'+bgC+';padding:11px;border-radius:7px;display:inline-block">'+h.thumb+'</div>';
   document.getElementById('act-btns').style.display='grid';
@@ -927,98 +1018,47 @@ function updSz(v){curSz=parseInt(v);document.getElementById('szv').textContent=v
 function setEC(el,l){document.querySelectorAll('.ecopt').forEach(o=>o.classList.remove('active'));el.classList.add('active');curEC=l;document.getElementById('st-ec').textContent=l;liveGen();}
 function getCanvas(){return document.querySelector('#qr-out canvas');}
 
-function dlQR(fmt){
-  const c=getCanvas();if(!c){toast('Generate a QR code first.','warn');return;}
+function dlQR(fmt) {
+  const c=getCanvas(); if(!c){toast('Generate a QR code first.','warn');return;}
   if(fmt==='png'){const a=document.createElement('a');a.download='qrcode.png';a.href=c.toDataURL('image/png');a.click();toast('PNG downloaded!');}
-  else{
-    const sz=curSz;const ctx=c.getContext('2d');const d=ctx.getImageData(0,0,c.width,c.height);
-    let s='<svg xmlns="http://www.w3.org/2000/svg" width="'+sz+'" height="'+sz+'" viewBox="0 0 '+c.width+' '+c.height+'"><rect width="'+c.width+'" height="'+c.height+'" fill="'+bgC+'"/>';
-    for(let y=0;y<c.height;y++){for(let x=0;x<c.width;x++){const i=(y*c.width+x)*4;if(d.data[i]<128&&d.data[i+1]<128&&d.data[i+2]<128)s+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+fgC+'"/>';}}
-    s+='</svg>';const b=new Blob([s],{type:'image/svg+xml'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.download='qrcode.svg';a.href=u;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);
-    toast('SVG downloaded!');
-  }
+  else{const sz=curSz,ctx=c.getContext('2d'),d=ctx.getImageData(0,0,c.width,c.height);let s='<svg xmlns="http://www.w3.org/2000/svg" width="'+sz+'" height="'+sz+'" viewBox="0 0 '+c.width+' '+c.height+'"><rect width="'+c.width+'" height="'+c.height+'" fill="'+bgC+'"/>';for(let y=0;y<c.height;y++){for(let x=0;x<c.width;x++){const i=(y*c.width+x)*4;if(d.data[i]<128&&d.data[i+1]<128&&d.data[i+2]<128)s+='<rect x="'+x+'" y="'+y+'" width="1" height="1" fill="'+fgC+'"/>';}}s+='</svg>';const b=new Blob([s],{type:'image/svg+xml'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.download='qrcode.svg';a.href=u;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);toast('SVG downloaded!');}
 }
 
-function cpyQR(){
-  const c=getCanvas();if(!c){toast('Generate a QR code first.','warn');return;}
-  c.toBlob(blob=>{
-    try{navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{
-      const b=document.getElementById('cpybtn');b.classList.add('ok');
-      b.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l3.5 3.5L13 5"/></svg> Copied!';
-      setTimeout(()=>{b.classList.remove('ok');b.innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V2h9"/></svg> Copy to clipboard';},2200);
-      toast('Copied to clipboard!');
-    });}catch(e){toast('Copy not supported in this browser.','warn');}
-  });
+function cpyQR() {
+  const c=getCanvas(); if(!c){toast('Generate a QR code first.','warn');return;}
+  c.toBlob(blob=>{try{navigator.clipboard.write([new ClipboardItem({'image/png':blob})]).then(()=>{const b=document.getElementById('cpybtn');b.classList.add('ok');b.innerHTML='Copied!';setTimeout(()=>{b.classList.remove('ok');b.innerHTML='Copy to clipboard';},2200);toast('Copied!');});}catch(e){toast('Copy not supported here.','warn');}});
 }
 
 function clearAll(){
   ['url-i','txt-i','em-a','em-s','em-b','ph-i','sms-num','sms-msg','wa-num','wa-msg','wf-s','wf-p','mp-lat','mp-lng','mp-lbl','cal-title','cal-start','cal-end','cal-loc','cal-desc','vc-f','vc-l','vc-p','vc-e','vc-o'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  resetPrev();toast('Cleared.');
+  resetPrev(); toast('Cleared.');
 }
 
-function saveProfile(){
-  const first=document.getElementById('pf-first').value.trim();
-  const last=document.getElementById('pf-last').value.trim();
-  if(!first||!last){toast('Please enter your name.','warn');return;}
-  if(currentUser){
-    currentUser.first=first;currentUser.last=last;currentUser.initials=(first[0]+last[0]).toUpperCase();
-    const users=getU();const idx=users.findIndex(u=>u.id===currentUser.id);
-    if(idx>-1){users[idx]=currentUser;saveU(users);}saveSes(currentUser);
-    document.getElementById('sb-name').textContent=first+' '+last;
-    document.getElementById('prof-name').textContent=first+' '+last;
-    ['sb-av','tb-av','prof-big-av'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=currentUser.initials;});
-  }
-  toast('Profile saved successfully!');
-}
+function setSettingsTab(el,tabId){document.querySelectorAll('.set-nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');document.querySelectorAll('.settings-section').forEach(s=>s.classList.remove('active'));document.getElementById(tabId).classList.add('active');}
+function setThemeOpt(el,theme){document.querySelectorAll('.theme-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');toast('Theme: '+theme);}
+function setAccent(el,color){document.querySelectorAll('[onclick^="setAccent"]').forEach(d=>{d.style.border='2px solid transparent';d.style.boxShadow='none';});el.style.border='2px solid white';el.style.boxShadow='0 0 0 2px '+color;document.documentElement.style.setProperty('--ac',color);toast('Accent colour updated!');}
 
-function resetProfile(){
-  if(currentUser){document.getElementById('pf-first').value=currentUser.first;document.getElementById('pf-last').value=currentUser.last;}
-  toast('Reset to saved values.');
-}
-
-function changePassword(){
-  const cur=document.getElementById('pf-curpw').value;
-  const nw=document.getElementById('pf-newpw').value;
-  const conf=document.getElementById('pf-confpw').value;
-  if(!cur||!nw||!conf){toast('Please fill in all password fields.','warn');return;}
-  if(currentUser&&cur!==currentUser.pass){toast('Current password is incorrect.','warn');return;}
-  if(nw.length<8){toast('New password must be at least 8 characters.','warn');return;}
-  if(nw!==conf){toast('New passwords do not match.','warn');return;}
-  if(currentUser){
-    currentUser.pass=nw;const users=getU();const idx=users.findIndex(u=>u.id===currentUser.id);
-    if(idx>-1){users[idx]=currentUser;saveU(users);}saveSes(currentUser);
-  }
-  ['pf-curpw','pf-newpw','pf-confpw'].forEach(id=>{document.getElementById(id).value='';});
-  toast('Password updated successfully!');
-}
-
-function setSettingsTab(el,tabId){
-  document.querySelectorAll('.set-nav-item').forEach(n=>n.classList.remove('active'));el.classList.add('active');
-  document.querySelectorAll('.settings-section').forEach(s=>s.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-}
-
-function setThemeOpt(el,theme){
-  document.querySelectorAll('.theme-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');
-  toast('Theme: '+theme+' (full theme switching requires a CSS refactor)');
-}
-
-function setAccent(el,color){
-  document.querySelectorAll('[onclick^="setAccent"]').forEach(d=>{d.style.border='2px solid transparent';d.style.boxShadow='none';});
-  el.style.border='2px solid white';el.style.boxShadow='0 0 0 2px '+color;
-  document.documentElement.style.setProperty('--ac',color);
-  toast('Accent colour updated!');
-}
-
-function toast(msg,type='success'){
+function toast(msg, type='success') {
   const t=document.getElementById('toast');
   document.getElementById('tdot').style.background=type==='warn'?'var(--am)':'var(--gr)';
   document.getElementById('tmsg').textContent=msg;
-  t.classList.add('show');clearTimeout(toast._t);
-  toast._t=setTimeout(()=>t.classList.remove('show'),2800);
+  t.classList.add('show'); clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-(function init(){const s=getSes();if(s)enterDash(s);else showPage('pg-login');})();
+// ══════════════════════════════════════════
+//  ✅ SUPABASE SESSION INIT
+// ══════════════════════════════════════════
+_supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) enterDash(session.user);
+  else if (event === 'SIGNED_OUT') showPage('pg-login');
+});
+
+_supabase.auth.getSession().then(({ data }) => {
+  if (data.session) enterDash(data.session.user);
+  else showPage('pg-login');
+});
+
 </script>
 </body>
 </html>
