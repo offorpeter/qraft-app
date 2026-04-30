@@ -601,7 +601,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-h
               <div class="guide-step"><div class="step-num">8</div><div class="step-body"><div class="step-badge badge-free">Optional • Google OAuth</div><div class="step-title">Enable Google Login</div><div class="step-desc">In Supabase Dashboard → Authentication → Providers → Google → enable and paste your Google OAuth credentials. Then update the Google button:</div><div class="code-block"><span class="c-key">async function</span> <span class="c-fn">signInWithGoogle</span>() {
   <span class="c-key">await</span> supabase.auth.<span class="c-fn">signInWithOAuth</span>({
     provider: <span style="color:var(--ac2)">'google'</span>,
-    options: { redirectTo: window.location.origin }
+    options: { redirectTo: 'https://offorpeter.github.io/qraft-app' }
   })
 }</div></div></div>
             </div>
@@ -813,7 +813,7 @@ async function doSignup() {
   setLoading('su-btn', true);
   const { data, error } = await _supabase.auth.signUp({
     email, password: pass,
-    options: { data: { first_name: first, last_name: last }, emailRedirectTo: window.location.origin }
+    options: { data: { first_name: first, last_name: last }, emailRedirectTo: 'https://offorpeter.github.io/qraft-app' }
   });
   setLoading('su-btn', false);
   if (error) { showErr('su', error.message); return; }
@@ -826,7 +826,7 @@ async function doSignup() {
 async function doGoogle() {
   const { error } = await _supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin }
+    options: { redirectTo: 'https://offorpeter.github.io/qraft-app' }
   });
   if (error) toast('Google sign-in failed: ' + error.message, 'warn');
 }
@@ -836,7 +836,7 @@ async function doForgot() {
   if (!email) { toast('Please enter your email.', 'warn'); return; }
   setLoading('fp-btn', true);
   const { error } = await _supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin
+    redirectTo: 'https://offorpeter.github.io/qraft-app'
   });
   setLoading('fp-btn', false);
   if (error) { toast(error.message, 'warn'); return; }
@@ -854,7 +854,7 @@ async function doLogout() {
 
 async function sendPasswordReset() {
   if (!currentUser) return;
-  const { error } = await _supabase.auth.resetPasswordForEmail(currentUser.email, { redirectTo: window.location.origin });
+  const { error } = await _supabase.auth.resetPasswordForEmail(currentUser.email, { redirectTo: 'https://offorpeter.github.io/qraft-app' });
   if (error) { toast('Error: ' + error.message, 'warn'); return; }
   toast('Password reset email sent to ' + currentUser.email);
 }
